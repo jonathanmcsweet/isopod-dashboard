@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 // '@podman-desktop/api' is aliased to the stub in vite.config.ts test config;
 // this import reaches the same module instance isopod-cli sees.
-import { process as pdProcess } from './__mocks__/podman-desktop-api';
+import { containerEngine, process as pdProcess } from './__mocks__/podman-desktop-api';
 import * as isopod from './isopod-cli';
 
 const execMock = vi.fn();
 pdProcess.exec = execMock;
+const listContainersMock = vi.fn();
+containerEngine.listContainers = listContainersMock;
 
 beforeEach(() => {
   execMock.mockReset();
+  listContainersMock.mockReset();
 });
 
 describe('listBoxes', () => {
@@ -35,6 +38,44 @@ describe('listBoxes', () => {
   test('rejects on non-JSON output', async () => {
     execMock.mockResolvedValue({ stdout: 'NAME  STATUS\n' });
     await expect(isopod.listBoxes()).rejects.toThrow(/not valid JSON/);
+  });
+});
+
+describe('boxInfo', () => {
+  test('parses the info --json contract', async () => {
+    execMock.mockResolvedValue({
+      stdout: JSON.stringify({
+        name: 'mybox',
+        status: 'running',
+        ssh_host: 'isopod-mybox',
+        port: 4222,
+        color: 'teal',
+        engine: 'podman',
+        forwards: ['8080:8080'],
+        secrets: ['ANTHROPIC_API_KEY'],
+        workspace: '/home/dev/workspace',
+      }),
+    });
+    const info = await isopod.boxInfo('mybox');
+    expect(execMock).toHaveBeenCalledWith('isopod', ['info', 'mybox', '--json']);
+    expect(info.forwards).toEqual(['8080:8080']);
+    expect(info.secrets).toEqual(['ANTHROPIC_API_KEY']);
+    expect(info.workspace).toBe('/home/dev/workspace');
+  });
+});
+
+describe('findBoxContainer', () => {
+  test('matches on the io.isopod.box label', async () => {
+    listContainersMock.mockResolvedValue([
+      { Id: 'other', engineId: 'e1', Labels: { 'io.isopod.box': 'notmine' } },
+      { Id: 'abc123', engineId: 'podman1', Labels: { 'io.isopod.box': 'mybox' } },
+    ]);
+    expect(await isopod.findBoxContainer('mybox')).toEqual({ id: 'abc123', engineId: 'podman1' });
+  });
+
+  test('returns undefined when no container carries the box label', async () => {
+    listContainersMock.mockResolvedValue([{ Id: 'x', engineId: 'e', Labels: {} }]);
+    expect(await isopod.findBoxContainer('mybox')).toBeUndefined();
   });
 });
 

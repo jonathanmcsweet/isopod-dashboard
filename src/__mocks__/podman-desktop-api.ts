@@ -9,6 +9,15 @@ export const process: { exec: (...args: unknown[]) => unknown; } = {
   },
 };
 
+<<<<<<< HEAD
+export const containerEngine: { listContainers: (...args: unknown[]) => unknown; } = {
+  listContainers: () => {
+    throw new Error('listContainers not stubbed — assign a mock in the test');
+  },
+};
+
+=======
+>>>>>>> master
 export class CancellationTokenSource {
   token = { isCancellationRequested: false };
   cancel(): void {
