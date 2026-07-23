@@ -1,7 +1,7 @@
 <script lang="ts">
 import { Button, ErrorMessage } from '@podman-desktop/ui-svelte';
 import { onMount } from 'svelte';
-import type { BoxSummary, EgressStatus } from '../../src/protocol';
+import type { BoxSummary, EgressAllowlist, EgressDenied, EgressStatus } from '../../src/protocol';
 import { onEvent, request } from './api';
 import BoxList from './BoxList.svelte';
 import EgressPanel from './EgressPanel.svelte';
@@ -11,6 +11,9 @@ let boxes = $state<BoxSummary[]>([]);
 let loaded = $state(false);
 let egress = $state<EgressStatus | null>(null);
 let egressError = $state<string | undefined>(undefined);
+let allowlist = $state<EgressAllowlist | null>(null);
+let denied = $state<EgressDenied | null>(null);
+let deniedError = $state<string | undefined>(undefined);
 let logLines = $state<string[]>([]);
 let logRunning = $state(false);
 let lastError = $state<string | undefined>(undefined);
@@ -28,6 +31,13 @@ onMount(() => {
       case 'egressStatus':
         egress = event.status;
         egressError = event.error;
+        break;
+      case 'egressAllowlist':
+        allowlist = event.allowlist;
+        break;
+      case 'egressDenied':
+        denied = event.denied;
+        deniedError = event.error;
         break;
       case 'egressLog':
         logLines = [...logLines, ...event.lines].slice(-MAX_LOG_LINES);
@@ -80,7 +90,15 @@ onMount(() => {
     {#if tab === 'boxes'}
       <BoxList {boxes} {loaded} />
     {:else}
-      <EgressPanel status={egress} error={egressError} {logLines} {logRunning} />
+      <EgressPanel
+        status={egress}
+        error={egressError}
+        {allowlist}
+        {denied}
+        {deniedError}
+        {logLines}
+        {logRunning}
+      />
     {/if}
   </div>
 </div>
