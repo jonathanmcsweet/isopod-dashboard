@@ -93,6 +93,25 @@ the proxy log, which needs root to read — errors exit non-zero as usual):
 }
 ```
 
+## `isopod secret ls --json`
+
+Object with the active storage `backend` and the managed secret names (never
+values), each with the boxes whose meta attaches it:
+
+```json
+{
+  "backend": "keychain-linux",
+  "secrets": [
+    { "name": "ANTHROPIC_API_KEY", "boxes": ["mybox", "other"] },
+    { "name": "GITHUB_TOKEN", "boxes": [] }
+  ]
+}
+```
+
+- `backend`: `keychain-macos` | `keychain-linux` | `file` (per `secret_backend`).
+- `boxes`: box names attaching the secret, empty when none.
+- Secret _values_ never appear — names only.
+
 ## Versioning
 
 The contract is additive-only. Removing or renaming a field is a breaking

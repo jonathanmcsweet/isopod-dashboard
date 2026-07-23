@@ -21,6 +21,18 @@ export interface BoxInfo extends BoxSummary {
 // Which built-in Podman Desktop container page to deep-link into for a box.
 export type ContainerView = 'details' | 'logs' | 'terminal' | 'inspect';
 
+// `isopod secret ls --json` — the names-only secret index plus which boxes
+// attach each name. Values never leave the host store, so none appear here.
+export interface SecretEntry {
+  name: string;
+  boxes: string[];
+}
+
+export interface SecretIndex {
+  backend: string;
+  secrets: SecretEntry[];
+}
+
 export interface EgressProxyStatus {
   running: boolean;
   port: number;
@@ -61,7 +73,8 @@ export type UiRequest =
   | { kind: 'egressLogStop'; }
   | { kind: 'egressAllow'; domain: string; }
   | { kind: 'egressAllowlist'; } // fetch baseline vs user allow-list
-  | { kind: 'egressDenied'; }; // fetch refused hostnames
+  | { kind: 'egressDenied'; } // fetch refused hostnames
+  | { kind: 'secrets'; }; // fetch the names-only secret index
 
 // extension -> webview
 export type UiEvent =
@@ -72,5 +85,6 @@ export type UiEvent =
   | { kind: 'egressDenied'; denied: EgressDenied | null; error?: string; }
   | { kind: 'egressLog'; lines: string[]; }
   | { kind: 'egressLogState'; running: boolean; }
+  | { kind: 'secrets'; secrets: SecretIndex | null; error?: string; }
   | { kind: 'busy'; name: string; busy: boolean; }
   | { kind: 'error'; message: string; };

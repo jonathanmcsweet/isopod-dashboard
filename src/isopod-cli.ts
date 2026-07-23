@@ -1,5 +1,12 @@
 import * as podmanDesktopApi from '@podman-desktop/api';
-import type { BoxInfo, BoxSummary, EgressAllowlist, EgressDenied, EgressStatus } from './protocol';
+import type {
+  BoxInfo,
+  BoxSummary,
+  EgressAllowlist,
+  EgressDenied,
+  EgressStatus,
+  SecretIndex,
+} from './protocol';
 
 // Thin wrapper around the isopod CLI. The CLI is the single source of truth;
 // this module only shells out and parses the --json contract
@@ -46,6 +53,10 @@ export async function egressAllowlist(): Promise<EgressAllowlist> {
 
 export async function egressDenied(): Promise<EgressDenied> {
   return execJson<EgressDenied>(['egress', 'denied', '--json']);
+}
+
+export async function secrets(): Promise<SecretIndex> {
+  return execJson<SecretIndex>(['secret', 'ls', '--json']);
 }
 
 export async function startBox(name: string): Promise<void> {
