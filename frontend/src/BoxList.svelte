@@ -3,6 +3,7 @@ import { EmptyScreen, Table, TableColumn, TableRow, TableSimpleColumn } from '@p
 import type { BoxSummary } from '../../src/protocol';
 import BoxActionsCell from './BoxActionsCell.svelte';
 import BoxColorCell from './BoxColorCell.svelte';
+import BoxNameCell from './BoxNameCell.svelte';
 import BoxStatusCell from './BoxStatusCell.svelte';
 
 interface Props {
@@ -17,10 +18,9 @@ const columns = [
     renderer: BoxStatusCell,
     comparator: (a, b) => a.status.localeCompare(b.status),
   }),
-  new TableColumn<BoxSummary, string>('Name', {
+  new TableColumn<BoxSummary>('Name', {
     width: '2fr',
-    renderMapping: box => box.name,
-    renderer: TableSimpleColumn,
+    renderer: BoxNameCell,
     comparator: (a, b) => a.name.localeCompare(b.name),
   }),
   new TableColumn<BoxSummary, string>('SSH host', {

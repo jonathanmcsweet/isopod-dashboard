@@ -11,6 +11,16 @@ export interface BoxSummary {
   engine: 'podman' | 'docker' | 'container' | string;
 }
 
+// `isopod info <name> --json` — the six shared box facts plus connection detail.
+export interface BoxInfo extends BoxSummary {
+  forwards: string[];
+  secrets: string[]; // names only; values never leave the host store
+  workspace: string;
+}
+
+// Which built-in Podman Desktop container page to deep-link into for a box.
+export type ContainerView = 'details' | 'logs' | 'terminal' | 'inspect';
+
 export interface EgressProxyStatus {
   running: boolean;
   port: number;
@@ -31,6 +41,9 @@ export type UiRequest =
   | { kind: 'openInIde'; name: string; }
   | { kind: 'startBox'; name: string; }
   | { kind: 'stopBox'; name: string; }
+  | { kind: 'boxInfo'; name: string; } // fetch full detail for one box
+  | { kind: 'openContainerView'; name: string; view: ContainerView; } // deep-link into a built-in page
+  | { kind: 'copyText'; text: string; } // copy to the host clipboard
   | { kind: 'egressLogStart'; }
   | { kind: 'egressLogStop'; }
   | { kind: 'egressAllow'; domain: string; };
@@ -38,6 +51,7 @@ export type UiRequest =
 // extension -> webview
 export type UiEvent =
   | { kind: 'boxes'; boxes: BoxSummary[]; }
+  | { kind: 'boxInfo'; name: string; info: BoxInfo | null; error?: string; }
   | { kind: 'egressStatus'; status: EgressStatus | null; error?: string; }
   | { kind: 'egressLog'; lines: string[]; }
   | { kind: 'egressLogState'; running: boolean; }

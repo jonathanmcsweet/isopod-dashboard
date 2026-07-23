@@ -1,5 +1,5 @@
 import * as podmanDesktopApi from '@podman-desktop/api';
-import type { BoxSummary, EgressStatus } from './protocol';
+import type { BoxInfo, BoxSummary, EgressStatus } from './protocol';
 
 // Thin wrapper around the isopod CLI. The CLI is the single source of truth;
 // this module only shells out and parses the --json contract
@@ -18,6 +18,22 @@ async function execJson<T>(args: string[]): Promise<T> {
 
 export async function listBoxes(): Promise<BoxSummary[]> {
   return execJson<BoxSummary[]>(['list', '--json']);
+}
+
+export async function boxInfo(name: string): Promise<BoxInfo> {
+  return execJson<BoxInfo>(['info', name, '--json']);
+}
+
+// The box's container as Podman Desktop sees it, matched by the io.isopod.box
+// label (value = box name). Returns undefined when the box has no live
+// container (stopped-and-removed or never created) — the deep-links only exist
+// for a container the built-in pages can actually show.
+export async function findBoxContainer(
+  name: string,
+): Promise<{ id: string; engineId: string; } | undefined> {
+  const containers = await podmanDesktopApi.containerEngine.listContainers();
+  const match = containers.find((c) => c.Labels?.['io.isopod.box'] === name);
+  return match ? { id: match.Id, engineId: match.engineId } : undefined;
 }
 
 export async function egressStatus(): Promise<EgressStatus> {
