@@ -1,7 +1,7 @@
 # Isopod Dashboard
 
 A [Podman Desktop](https://podman-desktop.io) extension for managing
-[isopod](../isopod) AI-coding sandboxes.
+[isopod](https://github.com/jonathanmcsweet/isopod) AI-coding sandboxes.
 
 ## Features (v1)
 
