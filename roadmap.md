@@ -22,18 +22,18 @@ including two things first assumed out of reach:
   socktainer shim, macOS 26+ / Apple Silicon).
 - Root-requiring egress operations, via `process.exec(..., { isAdmin: true })`.
 
-A standalone tray utility remains a possible *additive* later idea for users who
+A standalone tray utility remains a possible _additive_ later idea for users who
 won't install Podman Desktop — not a reason to build the dashboard standalone.
 
 ---
 
 ## Phase 0 — Foundations (prerequisites)
 
-| Item | Status | Notes |
-|---|---|---|
-| `isopod --json` for `list`, `info`, `egress status` | **Done** | isopod branch `feat/json-output`, v2.9.0. Contract in docs/cli-contract.md. |
-| `io.isopod.box` label on `isopod create` containers | **Pending** | Needed for the Containers-tab menu item and posture badge to key off. Small isopod change. |
-| Non-interactive CLI flags (`--yes`) for wizard-driven ops | **Pending** | `process.exec` has no PTY; any op the wizard triggers must run non-interactively. |
+| Item                                                      | Status      | Notes                                                                                      |
+| --------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `isopod --json` for `list`, `info`, `egress status`       | **Done**    | isopod branch `feat/json-output`, v2.9.0. Contract in docs/cli-contract.md.                |
+| `io.isopod.box` label on `isopod create` containers       | **Pending** | Needed for the Containers-tab menu item and posture badge to key off. Small isopod change. |
+| Non-interactive CLI flags (`--yes`) for wizard-driven ops | **Pending** | `process.exec` has no PTY; any op the wizard triggers must run non-interactively.          |
 
 ## Phase 1 — v1 (shipped, v0.1.0)
 
@@ -55,9 +55,9 @@ token), `contributes.menus`.
 - **Security posture badge per box** — `contributes.views` →
   `icons/containersList` with a when-clause on box labels (tier 1/2/3, hardening
   profile, egress mode). Requires the `io.isopod.box` label + tier labels at
-  create time. *(Feature 3)*
+  create time. _(Feature 3)_
 - **Egress panel v2** — separate blocked-request feed from the raw log; show
-  baseline vs. user allow-list with diff; per-box egress attribution. *(Feature 2 cont.)*
+  baseline vs. user allow-list with diff; per-box egress attribution. _(Feature 2 cont.)_
 - **Box detail view** — click a box → full `isopod info` (forwards, secrets
   names, workspace), copyable SSH destination for non-VSCodium IDEs, deep-links
   to the built-in container logs/terminal/inspect via `navigation.navigateTo*`.
@@ -66,15 +66,15 @@ token), `contributes.menus`.
 
 - **Create wizard** — `FormPage` over `isopod create` flags (repo/allowlist
   folders via `showOpenDialog`, color, memory, hardening, egress mode), run
-  under `window.withProgress`. *(Feature 4)*
+  under `window.withProgress`. _(Feature 4)_
 - **Get-work-out view** — show what changed in the box workspace; buttons for
   `fetch` vs `export`; preview what `remap` would rewrite in the git log.
-  *(Feature 6)*
+  _(Feature 6)_
 - **Doctor + GC** — render `isopod doctor` as checks with fix hints; show
   reclaimable disk (stale boxes, dangling images from `containerEngine.info` /
-  `listImages`) with one-click `gc`. *(Feature 7)*
+  `listImages`) with one-click `gc`. _(Feature 7)_
 - **Secrets panel** — names-only index, backend in use, which boxes have each
-  secret attached (via `isopod secret`; not engine secrets). *(Feature 8)*
+  secret attached (via `isopod secret`; not engine secrets). _(Feature 8)_
 
 ## Phase 4 — Platform integration (API bonuses)
 

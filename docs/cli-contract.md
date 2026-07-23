@@ -47,7 +47,7 @@ Object for one box — the same facts `info.txt` renders:
 ```
 
 - `forwards` and `secrets`: arrays, empty when none (never placeholder prose).
-- Secret *names* only — values never leave the host store.
+- Secret _names_ only — values never leave the host store.
 
 ## `isopod egress status --json`
 

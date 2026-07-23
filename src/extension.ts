@@ -1,6 +1,6 @@
+import * as podmanDesktopApi from '@podman-desktop/api';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import * as podmanDesktopApi from '@podman-desktop/api';
 import * as isopod from './isopod-cli';
 import type { UiEvent, UiRequest } from './protocol';
 
@@ -68,7 +68,9 @@ async function handleRequest(request: UiRequest): Promise<void> {
       } catch (err: unknown) {
         await send({
           kind: 'error',
-          message: `${request.kind === 'startBox' ? 'start' : 'stop'} ${request.name} failed: ${err instanceof Error ? err.message : String(err)}`,
+          message: `${request.kind === 'startBox' ? 'start' : 'stop'} ${request.name} failed: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
         });
       } finally {
         await send({ kind: 'busy', name: request.name, busy: false });
@@ -117,7 +119,8 @@ async function webviewHtml(extensionPath: string, webview: podmanDesktopApi.Webv
     const uri = webview.asWebviewUri(podmanDesktopApi.Uri.file(join(webviewDir, path)));
     return `${attr}="${uri.toString()}"`;
   });
-  const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource}; img-src ${webview.cspSource} data:;">`;
+  const csp =
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource}; img-src ${webview.cspSource} data:;">`;
   return rewritten.replace('<head>', `<head>\n    ${csp}`);
 }
 
@@ -143,12 +146,13 @@ async function openDashboard(extensionPath: string): Promise<void> {
 
 export async function activate(context: podmanDesktopApi.ExtensionContext): Promise<void> {
   context.subscriptions.push(
-    podmanDesktopApi.commands.registerCommand('isopod.openDashboard', () =>
-      openDashboard(context.extensionUri.fsPath),
+    podmanDesktopApi.commands.registerCommand(
+      'isopod.openDashboard',
+      () => openDashboard(context.extensionUri.fsPath),
     ),
     podmanDesktopApi.commands.registerCommand(
       'isopod.openInIde',
-      async (container: { Labels?: Record<string, string> }) => {
+      async (container: { Labels?: Record<string, string>; }) => {
         const name = container ? isopod.boxNameFromContainer(container) : undefined;
         if (!name) {
           await podmanDesktopApi.window.showErrorMessage('Not an isopod box (no io.isopod.box label).');

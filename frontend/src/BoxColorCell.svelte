@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { BoxSummary } from '../../src/protocol';
+import type { BoxSummary } from '../../src/protocol';
 
-  interface Props {
-    object: BoxSummary;
-  }
-  let { object }: Props = $props();
+interface Props {
+  object: BoxSummary;
+}
+let { object }: Props = $props();
 </script>
 
 {#if object.color}

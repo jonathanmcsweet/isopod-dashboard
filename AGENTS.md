@@ -19,17 +19,23 @@ output or read isopod's on-disk state directly.
 - `pnpm build` — backend (`dist/extension.cjs`) then webview (`dist/webview/`).
 - `pnpm typecheck` — `tsc --noEmit` + `svelte-check`. Keep it at 0 errors.
 - `pnpm test` — vitest unit tests (`src/**/*.spec.ts`).
-- `pnpm check` — Biome format + lint (read-only); `pnpm check:fix` applies
-  safe fixes.
+- `pnpm format` — format everything with dprint; `pnpm format:check` verifies.
+- `pnpm lint` — Biome lint; `pnpm lint:fix` applies safe lint fixes.
 
 Run all three green before committing.
 
-Formatting and linting is [Biome](https://biomejs.dev) (config in `biome.json`).
-A `simple-git-hooks` pre-commit hook runs `lint-staged`, which formats staged
-JS/TS/JSON with Biome. Biome deliberately does NOT touch `.svelte` (its linter
-flags template-used imports as unused and would delete them) or `.css` (it can't
-parse Tailwind v4 directives) — those are covered by `svelte-check` and the
-build. Do not add `.svelte`/`.css` back into Biome's `includes`.
+Formatting is [dprint](https://dprint.dev) (config in `dprint.json`) — the single
+formatter for every file type, `.svelte` and `.css` included (via the g-plane
+`markup_fmt` and `malva` plugins, which handle Tailwind v4). Linting is
+[Biome](https://biomejs.dev) as a **linter only** (its formatter and assist are
+disabled in `biome.json`); it lints TS/JS/JSON. Biome does NOT lint `.svelte`
+(its parser flags template-used imports as unused) or `.css` — those are excluded
+in `biome.json`, and Svelte correctness is covered by `svelte-check`. A
+`simple-git-hooks` pre-commit hook runs `lint-staged`: `biome lint --write` then
+`dprint fmt` on staged files.
+
+Note: dprint's markdown formatter treats a wrapped line beginning with `+`, `-`,
+or `*` as a list bullet — keep prose continuations from starting with those.
 
 ## Layout
 
@@ -38,8 +44,8 @@ build. Do not add `.svelte`/`.css` back into Biome's `includes`.
   - `src/isopod-cli.ts` — the only place that spawns `isopod`.
   - `src/protocol.ts` — message + data types SHARED by backend and webview.
     Data shapes here must mirror docs/cli-contract.md.
-- `frontend/` — the webview page (Svelte 5 runes + `@podman-desktop/ui-svelte`
-  + Tailwind 4). Talks to the backend only via `postMessage` (see
+- `frontend/` — the webview page. Svelte 5 runes with `@podman-desktop/ui-svelte`
+  and Tailwind 4. Talks to the backend only via `postMessage` (see
   `frontend/src/api.ts`).
 - `docs/cli-contract.md` — the isopod `--json` contract this extension depends on.
 
@@ -52,6 +58,7 @@ build. Do not add `.svelte`/`.css` back into Biome's `includes`.
   branch of work.
 
 ### UI
+
 - Always use a functional-first immutability-first coding style unless truly not possible
 - Prefer `@podman-desktop/ui-svelte` (Table, NavPage, Button,
   Input, EmptyScreen, …) over hand-rolled markup so the page matches the native

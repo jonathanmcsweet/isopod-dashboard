@@ -1,6 +1,6 @@
-import { join } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
+import { join } from 'node:path';
 import { defineConfig } from 'vite';
 
 // Frontend build: the webview page. Assets use relative paths; the extension

@@ -36,26 +36,28 @@
     "watch": "vite build -w",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig frontend/tsconfig.json",
     "test": "vitest run",
-    "format": "biome format --write",
+    "format": "dprint fmt",
+    "format:check": "dprint check",
     "lint": "biome lint",
-    "check": "biome check",
-    "check:fix": "biome check --write",
+    "lint:fix": "biome lint --write",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged"
   },
   "lint-staged": {
-    "*.{ts,mts,js,mjs,cjs,json,jsonc}": "biome check --write --no-errors-on-unmatched"
+    "*.{ts,mts,js,mjs,cjs,json,jsonc}": ["biome lint --write --no-errors-on-unmatched", "dprint fmt"],
+    "*.{svelte,css,md,html,yaml,yml}": "dprint fmt"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.5",
+    "@biomejs/biome": "^2.5.5",
     "@podman-desktop/api": "^1.15.0",
     "@podman-desktop/ui-svelte": "^1.15.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tsconfig/svelte": "^5.0.4",
     "@types/node": "^26.1.1",
+    "dprint": "^0.55.2",
     "lint-staged": "17.1.0",
     "simple-git-hooks": "2.13.1",
     "svelte": "^5.0.0",

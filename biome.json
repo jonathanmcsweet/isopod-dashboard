@@ -9,19 +9,12 @@
     "includes": ["**", "!dist", "!node_modules", "!**/*.svelte", "!**/*.css"]
   },
   "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 110
+    "enabled": false
+  },
+  "assist": {
+    "enabled": false
   },
   "linter": {
     "enabled": true
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "semicolons": "always",
-      "trailingCommas": "all"
-    }
   }
 }

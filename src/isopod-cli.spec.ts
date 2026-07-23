@@ -66,9 +66,9 @@ describe('openInIde', () => {
 
 describe('tailEgressLog', () => {
   test('splits chunks into lines and stops via cancellation', async () => {
-    let resolveExec: (value: { stdout: string }) => void = () => {};
+    let resolveExec: (value: { stdout: string; }) => void = () => {};
     execMock.mockImplementation(
-      (_cmd: string, _args: string[], options: { logger: { log: (...d: unknown[]) => void } }) => {
+      (_cmd: string, _args: string[], options: { logger: { log: (...d: unknown[]) => void; }; }) => {
         options.logger.log('a.example.com allowed\nb.example.com denied\n');
         return new Promise((resolve) => {
           resolveExec = resolve;

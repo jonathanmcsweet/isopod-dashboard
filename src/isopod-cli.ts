@@ -85,6 +85,6 @@ export function tailEgressLog(
 
 // The container-menu command receives the container the user clicked. Boxes
 // are recognized by the io.isopod.box label (value = box name).
-export function boxNameFromContainer(container: { Labels?: Record<string, string> }): string | undefined {
+export function boxNameFromContainer(container: { Labels?: Record<string, string>; }): string | undefined {
   return container.Labels?.['io.isopod.box'];
 }

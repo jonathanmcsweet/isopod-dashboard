@@ -27,19 +27,19 @@ export interface EgressStatus {
 
 // webview -> extension
 export type UiRequest =
-  | { kind: 'refresh' } // re-fetch boxes + egress status
-  | { kind: 'openInIde'; name: string }
-  | { kind: 'startBox'; name: string }
-  | { kind: 'stopBox'; name: string }
-  | { kind: 'egressLogStart' }
-  | { kind: 'egressLogStop' }
-  | { kind: 'egressAllow'; domain: string };
+  | { kind: 'refresh'; } // re-fetch boxes + egress status
+  | { kind: 'openInIde'; name: string; }
+  | { kind: 'startBox'; name: string; }
+  | { kind: 'stopBox'; name: string; }
+  | { kind: 'egressLogStart'; }
+  | { kind: 'egressLogStop'; }
+  | { kind: 'egressAllow'; domain: string; };
 
 // extension -> webview
 export type UiEvent =
-  | { kind: 'boxes'; boxes: BoxSummary[] }
-  | { kind: 'egressStatus'; status: EgressStatus | null; error?: string }
-  | { kind: 'egressLog'; lines: string[] }
-  | { kind: 'egressLogState'; running: boolean }
-  | { kind: 'busy'; name: string; busy: boolean }
-  | { kind: 'error'; message: string };
+  | { kind: 'boxes'; boxes: BoxSummary[]; }
+  | { kind: 'egressStatus'; status: EgressStatus | null; error?: string; }
+  | { kind: 'egressLog'; lines: string[]; }
+  | { kind: 'egressLogState'; running: boolean; }
+  | { kind: 'busy'; name: string; busy: boolean; }
+  | { kind: 'error'; message: string; };

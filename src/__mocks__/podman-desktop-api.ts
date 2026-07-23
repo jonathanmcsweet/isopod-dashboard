@@ -3,7 +3,7 @@
 // so the test config aliases the module here. Tests replace `process.exec`
 // with their own mock; keep this file free of vitest imports.
 
-export const process: { exec: (...args: unknown[]) => unknown } = {
+export const process: { exec: (...args: unknown[]) => unknown; } = {
   exec: () => {
     throw new Error('process.exec not stubbed — assign a mock in the test');
   },

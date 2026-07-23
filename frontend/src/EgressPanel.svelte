@@ -1,39 +1,39 @@
 <script lang="ts">
-  import { Button, Input } from '@podman-desktop/ui-svelte';
-  import type { EgressStatus } from '../../src/protocol';
-  import { request } from './api';
+import { Button, Input } from '@podman-desktop/ui-svelte';
+import type { EgressStatus } from '../../src/protocol';
+import { request } from './api';
 
-  interface Props {
-    status: EgressStatus | null;
-    error: string | undefined;
-    logLines: string[];
-    logRunning: boolean;
-  }
-  let { status, error, logLines, logRunning }: Props = $props();
+interface Props {
+  status: EgressStatus | null;
+  error: string | undefined;
+  logLines: string[];
+  logRunning: boolean;
+}
+let { status, error, logLines, logRunning }: Props = $props();
 
-  let domain = $state('');
-  let logView = $state<HTMLElement | undefined>(undefined);
+let domain = $state('');
+let logView = $state<HTMLElement | undefined>(undefined);
 
-  $effect(() => {
-    // Follow the tail as lines arrive.
-    void logLines.length;
-    if (logView) logView.scrollTop = logView.scrollHeight;
-  });
+$effect(() => {
+  // Follow the tail as lines arrive.
+  void logLines.length;
+  if (logView) logView.scrollTop = logView.scrollHeight;
+});
 
-  function allowDomain(): void {
-    const trimmed = domain.trim();
-    if (!trimmed) return;
-    request({ kind: 'egressAllow', domain: trimmed });
-    domain = '';
-  }
+function allowDomain(): void {
+  const trimmed = domain.trim();
+  if (!trimmed) return;
+  request({ kind: 'egressAllow', domain: trimmed });
+  domain = '';
+}
 
-  const firewallColor = $derived(
-    status?.firewall === 'active'
-      ? 'var(--pd-status-running, #16a34a)'
-      : status?.firewall === 'inactive'
-        ? 'var(--pd-status-dead, #dc2626)'
-        : 'var(--pd-status-stopped, #6b7280)',
-  );
+const firewallColor = $derived(
+  status?.firewall === 'active'
+    ? 'var(--pd-status-running, #16a34a)'
+    : status?.firewall === 'inactive'
+    ? 'var(--pd-status-dead, #dc2626)'
+    : 'var(--pd-status-stopped, #6b7280)',
+);
 </script>
 
 <div class="flex h-full flex-col gap-4">
@@ -44,7 +44,10 @@
         <div><span class="opacity-70">Mode:</span> {status.mode}</div>
         <div class="flex items-center gap-2">
           <span class="opacity-70">Firewall:</span>
-          <span class="inline-block h-2.5 w-2.5 rounded-full" style="background-color: {firewallColor}"></span>
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-full"
+            style="background-color: {firewallColor}"
+          ></span>
           {status.firewall}
         </div>
         <div><span class="opacity-70">Network:</span> {status.network}</div>
@@ -93,7 +96,8 @@
     </div>
     <div
       bind:this={logView}
-      class="min-h-32 grow overflow-auto rounded bg-[var(--pd-terminal-background,#12141a)] p-2 font-mono text-xs whitespace-pre-wrap">
+      class="min-h-32 grow overflow-auto rounded bg-[var(--pd-terminal-background,#12141a)] p-2 font-mono text-xs whitespace-pre-wrap"
+    >
       {#if logLines.length === 0}
         <span class="opacity-50">{logRunning ? 'Waiting for egress traffic…' : 'Tail stopped.'}</span>
       {:else}
