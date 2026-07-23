@@ -80,6 +80,32 @@ async function pushSecrets(): Promise<void> {
   }
 }
 
+async function pushDoctor(): Promise<void> {
+  try {
+    const report = await isopod.doctor();
+    await send({ kind: 'doctor', report });
+  } catch (err: unknown) {
+    await send({
+      kind: 'doctor',
+      report: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+async function pushGcPreview(): Promise<void> {
+  try {
+    const gc = await isopod.gcPreview();
+    await send({ kind: 'gcPreview', gc });
+  } catch (err: unknown) {
+    await send({
+      kind: 'gcPreview',
+      gc: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 async function pushEgressStatus(): Promise<void> {
   try {
     const status = await isopod.egressStatus();
@@ -140,6 +166,24 @@ async function handleRequest(request: UiRequest): Promise<void> {
     case 'secrets':
       await pushSecrets();
       break;
+    case 'doctor':
+      await Promise.all([pushDoctor(), pushGcPreview()]);
+      break;
+    case 'gcRun':
+      try {
+        const summary = await isopod.gcRun();
+        await podmanDesktopApi.window.showInformationMessage(
+          summary || 'Garbage collection complete.',
+        );
+      } catch (err: unknown) {
+        await send({
+          kind: 'error',
+          message: `gc failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        await pushGcPreview();
+      }
+      break;
     case 'openInIde':
       try {
         await isopod.openInIde(request.name);
@@ -166,6 +210,39 @@ async function handleRequest(request: UiRequest): Promise<void> {
     case 'copyText':
       await podmanDesktopApi.env.clipboard.writeText(request.text);
       break;
+    case 'pickFolder': {
+      const uris = await podmanDesktopApi.window.showOpenDialog({
+        selectors: ['openDirectory', 'multiSelections'],
+        openLabel: 'Add repo folder',
+        title: 'Select repository folder(s) for the box',
+      });
+      await send({ kind: 'folderPicked', paths: (uris ?? []).map((uri) => uri.fsPath) });
+      break;
+    }
+    case 'createBox': {
+      const { options } = request;
+      await podmanDesktopApi.window.withProgress(
+        {
+          location: podmanDesktopApi.ProgressLocation.TASK_WIDGET,
+          title: `Creating box '${options.name}'`,
+        },
+        async () => {
+          try {
+            await isopod.createBox(options);
+            await send({ kind: 'createResult', name: options.name, ok: true });
+            await pushBoxes();
+          } catch (err: unknown) {
+            await send({
+              kind: 'createResult',
+              name: options.name,
+              ok: false,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        },
+      );
+      break;
+    }
     case 'startBox':
     case 'stopBox': {
       const action = request.kind === 'startBox' ? isopod.startBox : isopod.stopBox;

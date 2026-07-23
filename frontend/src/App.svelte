@@ -3,18 +3,22 @@ import { Button, ErrorMessage } from '@podman-desktop/ui-svelte';
 import { onMount } from 'svelte';
 import type {
   BoxSummary,
+  DoctorReport,
   EgressAllowlist,
   EgressDenied,
   EgressStatus,
+  GcPreview,
   SecretIndex,
 } from '../../src/protocol';
 import { onEvent, request } from './api';
 import BoxList from './BoxList.svelte';
+import CreateBox from './CreateBox.svelte';
+import DoctorPanel from './DoctorPanel.svelte';
 import EgressPanel from './EgressPanel.svelte';
 import SecretsPanel from './SecretsPanel.svelte';
-import { busyBoxes, detail } from './stores.svelte';
+import { busyBoxes, createForm, detail, openCreateForm, resetCreateForm } from './stores.svelte';
 
-type Tab = 'boxes' | 'egress' | 'secrets';
+type Tab = 'boxes' | 'egress' | 'secrets' | 'doctor';
 
 let boxes = $state<BoxSummary[]>([]);
 let loaded = $state(false);
@@ -29,15 +33,24 @@ let lastError = $state<string | undefined>(undefined);
 let secrets = $state<SecretIndex | null>(null);
 let secretsError = $state<string | undefined>(undefined);
 let secretsLoaded = $state(false);
+let doctorReport = $state<DoctorReport | null>(null);
+let doctorError = $state<string | undefined>(undefined);
+let gc = $state<GcPreview | null>(null);
+let gcError = $state<string | undefined>(undefined);
+let doctorLoaded = $state(false);
 let tab = $state<Tab>('boxes');
 
-// Fetch the secret index the first time the Secrets tab is opened (it needs a
-// CLI call; no point paying for it if the user never looks).
+// Fetch a tab's data the first time it's opened (each needs a CLI call; no point
+// paying for it if the user never looks).
 function selectTab(next: Tab): void {
   tab = next;
   if (next === 'secrets' && !secretsLoaded) {
     secretsLoaded = true;
     request({ kind: 'secrets' });
+  }
+  if (next === 'doctor' && !doctorLoaded) {
+    doctorLoaded = true;
+    request({ kind: 'doctor' });
   }
 }
 
@@ -65,6 +78,29 @@ onMount(() => {
         secrets = event.secrets;
         secretsError = event.error;
         break;
+      case 'doctor':
+        doctorReport = event.report;
+        doctorError = event.error;
+        break;
+      case 'gcPreview':
+        gc = event.gc;
+        gcError = event.error;
+        break;
+      case 'folderPicked':
+        // Append newly picked folders to the create form, de-duplicated.
+        createForm.repos = [
+          ...createForm.repos,
+          ...event.paths.filter(p => !createForm.repos.includes(p)),
+        ];
+        break;
+      case 'createResult':
+        if (event.ok) {
+          resetCreateForm();
+        } else {
+          createForm.submitting = false;
+          lastError = event.error ?? `create ${event.name} failed`;
+        }
+        break;
       case 'egressLog':
         logLines = [...logLines, ...event.lines].slice(-MAX_LOG_LINES);
         break;
@@ -91,7 +127,10 @@ onMount(() => {
   </div>
 
   <div class="mb-4 flex gap-1 border-b border-[var(--pd-content-divider,#333)]">
-    {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }] as tabDef (tabDef.id)}
+    {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }, {
+      id: 'doctor',
+      label: 'Doctor',
+    }] as tabDef (tabDef.id)}
       <button
         class="
           cursor-pointer border-b-2 px-4 py-2 text-sm {tab === tabDef.id
@@ -116,7 +155,12 @@ onMount(() => {
     {#if tab === 'boxes'}
       {#if detail.name !== null}
         <BoxDetail name={detail.name} info={detail.info} error={detail.error} />
+      {:else if createForm.open}
+        <CreateBox />
       {:else}
+        <div class="mb-3 flex justify-end">
+          <Button type="primary" on:click={openCreateForm}>+ New box</Button>
+        </div>
         <BoxList {boxes} {loaded} />
       {/if}
     {:else if tab === 'egress'}
@@ -129,8 +173,16 @@ onMount(() => {
         {logLines}
         {logRunning}
       />
-    {:else}
+    {:else if tab === 'secrets'}
       <SecretsPanel {secrets} error={secretsError} loaded={secretsLoaded} />
+    {:else}
+      <DoctorPanel
+        report={doctorReport}
+        error={doctorError}
+        {gc}
+        {gcError}
+        loaded={doctorLoaded}
+      />
     {/if}
   </div>
 </div>

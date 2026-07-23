@@ -41,6 +41,53 @@ describe('listBoxes', () => {
   });
 });
 
+describe('createArgs', () => {
+  test('includes only the set options and repeats --repo', () => {
+    expect(
+      isopod.createArgs({
+        name: 'mybox',
+        repos: ['/a', '/b'],
+        color: 'teal',
+        memory: '2g',
+        cpus: '2',
+        engine: 'podman',
+        harden: 'off',
+        dev: true,
+        noSudo: true,
+      }),
+    ).toEqual([
+      'create',
+      'mybox',
+      '--repo',
+      '/a',
+      '--repo',
+      '/b',
+      '--color',
+      'teal',
+      '--memory',
+      '2g',
+      '--cpus',
+      '2',
+      '--engine',
+      'podman',
+      '--harden',
+      'off',
+      '--dev',
+      '--no-sudo',
+    ]);
+  });
+
+  test('omits empty/false options', () => {
+    expect(isopod.createArgs({ name: 'bare', repos: [] })).toEqual(['create', 'bare']);
+  });
+
+  test('createBox execs the assembled argv', async () => {
+    execMock.mockResolvedValue({ stdout: '' });
+    await isopod.createBox({ name: 'x', repos: ['/r'] });
+    expect(execMock).toHaveBeenCalledWith('isopod', ['create', 'x', '--repo', '/r']);
+  });
+});
+
 describe('boxInfo', () => {
   test('parses the info --json contract', async () => {
     execMock.mockResolvedValue({
@@ -134,6 +181,37 @@ describe('secrets', () => {
     expect(index.backend).toBe('keychain-linux');
     expect(index.secrets[0]).toEqual({ name: 'ANTHROPIC_API_KEY', boxes: ['a', 'b'] });
     expect(index.secrets[1].boxes).toEqual([]);
+  });
+});
+
+describe('doctor', () => {
+  test('parses the doctor health summary', async () => {
+    execMock.mockResolvedValue({
+      stdout: JSON.stringify({
+        version: '2.12.0',
+        checks: [{ level: 'ok', id: 'ssh-tools', label: 'SSH client tools', hint: '' }],
+      }),
+    });
+    const report = await isopod.doctor();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['doctor', '--json']);
+    expect(report.version).toBe('2.12.0');
+    expect(report.checks[0].id).toBe('ssh-tools');
+  });
+});
+
+describe('gc', () => {
+  test('gcPreview parses the reclaimable-image list', async () => {
+    execMock.mockResolvedValue({ stdout: JSON.stringify({ images: ['localhost/isopod-base:v1'] }) });
+    const gc = await isopod.gcPreview();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['gc', '--json']);
+    expect(gc.images).toEqual(['localhost/isopod-base:v1']);
+  });
+
+  test('gcRun executes gc --force and returns the trimmed summary', async () => {
+    execMock.mockResolvedValue({ stdout: 'removed localhost/isopod-base:v1\n' });
+    const summary = await isopod.gcRun();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['gc', '--force']);
+    expect(summary).toBe('removed localhost/isopod-base:v1');
   });
 });
 

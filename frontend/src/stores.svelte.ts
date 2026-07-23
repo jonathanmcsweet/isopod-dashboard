@@ -25,3 +25,44 @@ export function closeDetail(): void {
   detail.info = null;
   detail.error = undefined;
 }
+
+// The create-box wizard's form state. `open` drives visibility; the fields map
+// to `isopod create` flags. Shared so App can feed picked folders (from the
+// backend dialog) into `repos` while the form component binds the rest.
+export interface CreateForm {
+  open: boolean;
+  name: string;
+  repos: string[];
+  color: string;
+  memory: string;
+  cpus: string;
+  engine: string;
+  harden: string;
+  dev: boolean;
+  noSudo: boolean;
+  submitting: boolean;
+}
+
+const emptyCreateForm: CreateForm = {
+  open: false,
+  name: '',
+  repos: [],
+  color: '',
+  memory: '',
+  cpus: '',
+  engine: '',
+  harden: '',
+  dev: false,
+  noSudo: false,
+  submitting: false,
+};
+
+export const createForm = $state<CreateForm>({ ...emptyCreateForm });
+
+export function openCreateForm(): void {
+  Object.assign(createForm, emptyCreateForm, { open: true });
+}
+
+export function resetCreateForm(): void {
+  Object.assign(createForm, emptyCreateForm);
+}
