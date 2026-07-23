@@ -13,10 +13,11 @@ import type {
 import { onEvent, request } from './api';
 import BoxDetail from './BoxDetail.svelte';
 import BoxList from './BoxList.svelte';
+import CreateBox from './CreateBox.svelte';
 import DoctorPanel from './DoctorPanel.svelte';
 import EgressPanel from './EgressPanel.svelte';
 import SecretsPanel from './SecretsPanel.svelte';
-import { busyBoxes, detail } from './stores.svelte';
+import { busyBoxes, createForm, detail, openCreateForm, resetCreateForm } from './stores.svelte';
 
 type Tab = 'boxes' | 'egress' | 'secrets' | 'doctor';
 
@@ -93,6 +94,21 @@ onMount(() => {
         gc = event.gc;
         gcError = event.error;
         break;
+      case 'folderPicked':
+        // Append newly picked folders to the create form, de-duplicated.
+        createForm.repos = [
+          ...createForm.repos,
+          ...event.paths.filter(p => !createForm.repos.includes(p)),
+        ];
+        break;
+      case 'createResult':
+        if (event.ok) {
+          resetCreateForm();
+        } else {
+          createForm.submitting = false;
+          lastError = event.error ?? `create ${event.name} failed`;
+        }
+        break;
       case 'egressLog':
         logLines = [...logLines, ...event.lines].slice(-MAX_LOG_LINES);
         break;
@@ -147,7 +163,12 @@ onMount(() => {
     {#if tab === 'boxes'}
       {#if detail.name !== null}
         <BoxDetail name={detail.name} info={detail.info} error={detail.error} />
+      {:else if createForm.open}
+        <CreateBox />
       {:else}
+        <div class="mb-3 flex justify-end">
+          <Button type="primary" on:click={openCreateForm}>+ New box</Button>
+        </div>
         <BoxList {boxes} {loaded} />
       {/if}
     {:else if tab === 'egress'}

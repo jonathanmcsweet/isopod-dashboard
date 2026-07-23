@@ -145,6 +145,14 @@ Object listing the unreferenced isopod images `gc` would reclaim. Read-only —
 { "images": ["localhost/isopod-base:v1", "localhost/isopod-box-abc:v1"] }
 ```
 
+## `isopod create <name> [flags]`
+
+Not a `--json` reader — the create wizard invokes `create` directly. It is
+fully flag-driven and non-interactive (no prompts, no PTY needed), so
+`process.exec` can run it. Flags the wizard sets: `--repo` (repeatable),
+`--color`, `--memory`, `--cpus`, `--engine`, `--harden` (`default`|`off`),
+`--dev`, `--no-sudo`. Success/failure is taken from the exit code.
+
 ## Versioning
 
 The contract is additive-only. Removing or renaming a field is a breaking

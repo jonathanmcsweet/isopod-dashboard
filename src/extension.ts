@@ -210,6 +210,39 @@ async function handleRequest(request: UiRequest): Promise<void> {
     case 'copyText':
       await podmanDesktopApi.env.clipboard.writeText(request.text);
       break;
+    case 'pickFolder': {
+      const uris = await podmanDesktopApi.window.showOpenDialog({
+        selectors: ['openDirectory', 'multiSelections'],
+        openLabel: 'Add repo folder',
+        title: 'Select repository folder(s) for the box',
+      });
+      await send({ kind: 'folderPicked', paths: (uris ?? []).map((uri) => uri.fsPath) });
+      break;
+    }
+    case 'createBox': {
+      const { options } = request;
+      await podmanDesktopApi.window.withProgress(
+        {
+          location: podmanDesktopApi.ProgressLocation.TASK_WIDGET,
+          title: `Creating box '${options.name}'`,
+        },
+        async () => {
+          try {
+            await isopod.createBox(options);
+            await send({ kind: 'createResult', name: options.name, ok: true });
+            await pushBoxes();
+          } catch (err: unknown) {
+            await send({
+              kind: 'createResult',
+              name: options.name,
+              ok: false,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        },
+      );
+      break;
+    }
     case 'startBox':
     case 'stopBox': {
       const action = request.kind === 'startBox' ? isopod.startBox : isopod.stopBox;

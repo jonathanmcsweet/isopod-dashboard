@@ -54,6 +54,20 @@ export interface GcPreview {
   images: string[];
 }
 
+// Options for `isopod create`, assembled by the create wizard. Empty/false
+// fields are omitted from the command line (the CLI applies its own defaults).
+export interface CreateOptions {
+  name: string;
+  repos: string[]; // --repo (repeatable)
+  color?: string; // --color <preset>
+  memory?: string; // --memory <e.g. 2g>
+  cpus?: string; // --cpus <n>
+  engine?: string; // --engine podman|docker|container
+  harden?: string; // --harden default|off
+  dev?: boolean; // --dev
+  noSudo?: boolean; // --no-sudo
+}
+
 export interface EgressProxyStatus {
   running: boolean;
   port: number;
@@ -97,7 +111,9 @@ export type UiRequest =
   | { kind: 'egressDenied'; } // fetch refused hostnames
   | { kind: 'secrets'; } // fetch the names-only secret index
   | { kind: 'doctor'; } // fetch the doctor health summary + gc preview
-  | { kind: 'gcRun'; }; // reclaim unreferenced images (isopod gc --force)
+  | { kind: 'gcRun'; } // reclaim unreferenced images (isopod gc --force)
+  | { kind: 'pickFolder'; } // open a host directory picker for repo folders
+  | { kind: 'createBox'; options: CreateOptions; }; // run isopod create
 
 // extension -> webview
 export type UiEvent =
@@ -111,5 +127,7 @@ export type UiEvent =
   | { kind: 'secrets'; secrets: SecretIndex | null; error?: string; }
   | { kind: 'doctor'; report: DoctorReport | null; error?: string; }
   | { kind: 'gcPreview'; gc: GcPreview | null; error?: string; }
+  | { kind: 'folderPicked'; paths: string[]; }
+  | { kind: 'createResult'; name: string; ok: boolean; error?: string; }
   | { kind: 'busy'; name: string; busy: boolean; }
   | { kind: 'error'; message: string; };
