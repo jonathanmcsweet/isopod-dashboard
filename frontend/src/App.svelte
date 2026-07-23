@@ -3,10 +3,9 @@ import { Button, ErrorMessage } from '@podman-desktop/ui-svelte';
 import { onMount } from 'svelte';
 import type { BoxSummary, EgressAllowlist, EgressDenied, EgressStatus } from '../../src/protocol';
 import { onEvent, request } from './api';
-import BoxDetail from './BoxDetail.svelte';
 import BoxList from './BoxList.svelte';
 import EgressPanel from './EgressPanel.svelte';
-import { busyBoxes, detail } from './stores.svelte';
+import { busyBoxes } from './stores.svelte';
 
 let boxes = $state<BoxSummary[]>([]);
 let loaded = $state(false);
@@ -28,13 +27,6 @@ onMount(() => {
       case 'boxes':
         boxes = event.boxes;
         loaded = true;
-        break;
-      case 'boxInfo':
-        // Ignore a stale response if the user already opened another box.
-        if (detail.name === event.name) {
-          detail.info = event.info;
-          detail.error = event.error;
-        }
         break;
       case 'egressStatus':
         egress = event.status;
@@ -96,11 +88,7 @@ onMount(() => {
 
   <div class="min-h-0 grow overflow-auto">
     {#if tab === 'boxes'}
-      {#if detail.name !== null}
-        <BoxDetail name={detail.name} info={detail.info} error={detail.error} />
-      {:else}
-        <BoxList {boxes} {loaded} />
-      {/if}
+      <BoxList {boxes} {loaded} />
     {:else}
       <EgressPanel
         status={egress}
