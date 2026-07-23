@@ -1,8 +1,8 @@
-import * as podmanDesktopApi from '@podman-desktop/api';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import * as podmanDesktopApi from '@podman-desktop/api';
 import * as isopod from './isopod-cli';
-import type { UiRequest, UiEvent } from './protocol';
+import type { UiEvent, UiRequest } from './protocol';
 
 const VIEW_TYPE = 'isopod-dashboard';
 
@@ -18,7 +18,10 @@ async function pushBoxes(): Promise<void> {
     const boxes = await isopod.listBoxes();
     await send({ kind: 'boxes', boxes });
   } catch (err: unknown) {
-    await send({ kind: 'error', message: `isopod list failed: ${err instanceof Error ? err.message : String(err)}` });
+    await send({
+      kind: 'error',
+      message: `isopod list failed: ${err instanceof Error ? err.message : String(err)}`,
+    });
   }
 }
 
@@ -50,7 +53,10 @@ async function handleRequest(request: UiRequest): Promise<void> {
       try {
         await isopod.openInIde(request.name);
       } catch (err: unknown) {
-        await send({ kind: 'error', message: `open failed: ${err instanceof Error ? err.message : String(err)}` });
+        await send({
+          kind: 'error',
+          message: `open failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
       }
       break;
     case 'startBox':
@@ -60,7 +66,10 @@ async function handleRequest(request: UiRequest): Promise<void> {
       try {
         await action(request.name);
       } catch (err: unknown) {
-        await send({ kind: 'error', message: `${request.kind === 'startBox' ? 'start' : 'stop'} ${request.name} failed: ${err instanceof Error ? err.message : String(err)}` });
+        await send({
+          kind: 'error',
+          message: `${request.kind === 'startBox' ? 'start' : 'stop'} ${request.name} failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
       } finally {
         await send({ kind: 'busy', name: request.name, busy: false });
         await pushBoxes();
@@ -70,8 +79,8 @@ async function handleRequest(request: UiRequest): Promise<void> {
     case 'egressLogStart':
       if (logTail) break;
       logTail = isopod.tailEgressLog(
-        lines => void send({ kind: 'egressLog', lines }),
-        error => {
+        (lines) => void send({ kind: 'egressLog', lines }),
+        (error) => {
           logTail = undefined;
           void send({ kind: 'egressLogState', running: false });
           if (error) void send({ kind: 'error', message: `egress log: ${error}` });
@@ -90,7 +99,10 @@ async function handleRequest(request: UiRequest): Promise<void> {
           `Added ${request.domain} to the egress allow-list. Run 'sudo isopod egress apply' to activate it.`,
         );
       } catch (err: unknown) {
-        await send({ kind: 'error', message: `egress allow failed: ${err instanceof Error ? err.message : String(err)}` });
+        await send({
+          kind: 'error',
+          message: `egress allow failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
       }
       break;
   }
@@ -112,7 +124,7 @@ async function webviewHtml(extensionPath: string, webview: podmanDesktopApi.Webv
 async function openDashboard(extensionPath: string): Promise<void> {
   if (panel) {
     const views = await podmanDesktopApi.window.listWebviews();
-    const mine = views.find(view => view.viewType === VIEW_TYPE);
+    const mine = views.find((view) => view.viewType === VIEW_TYPE);
     if (mine) {
       await podmanDesktopApi.navigation.navigateToWebview(mine.id);
       return;
@@ -131,7 +143,9 @@ async function openDashboard(extensionPath: string): Promise<void> {
 
 export async function activate(context: podmanDesktopApi.ExtensionContext): Promise<void> {
   context.subscriptions.push(
-    podmanDesktopApi.commands.registerCommand('isopod.openDashboard', () => openDashboard(context.extensionUri.fsPath)),
+    podmanDesktopApi.commands.registerCommand('isopod.openDashboard', () =>
+      openDashboard(context.extensionUri.fsPath),
+    ),
     podmanDesktopApi.commands.registerCommand(
       'isopod.openInIde',
       async (container: { Labels?: Record<string, string> }) => {
@@ -157,7 +171,9 @@ export async function activate(context: podmanDesktopApi.ExtensionContext): Prom
   );
 
   // Open the dashboard from the left navigation, not only the command palette.
-  context.subscriptions.push(podmanDesktopApi.navigation.register('isopod-dashboard', 'isopod.openDashboard'));
+  context.subscriptions.push(
+    podmanDesktopApi.navigation.register('isopod-dashboard', 'isopod.openDashboard'),
+  );
 }
 
 export function deactivate(): void {

@@ -1,4 +1,4 @@
-import type { UiRequest, UiEvent } from '../../src/protocol';
+import type { UiEvent, UiRequest } from '../../src/protocol';
 
 // Bridge to the extension backend. Podman Desktop injects
 // acquirePodmanDesktopApi() into webview pages (same contract as VS Code's
@@ -20,7 +20,7 @@ export function request(message: UiRequest): void {
 }
 
 export function onEvent(handler: (event: UiEvent) => void): void {
-  window.addEventListener('message', messageEvent => {
+  window.addEventListener('message', (messageEvent) => {
     const data: unknown = messageEvent.data;
     if (data && typeof data === 'object' && 'kind' in data) {
       handler(data as UiEvent);

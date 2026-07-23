@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import { join } from 'node:path';
+import { defineConfig } from 'vitest/config';
 
 // Separate from vite.config.ts on purpose: the build config sets
 // ssr.noExternal, which would make vitest inline its own runtime and break.

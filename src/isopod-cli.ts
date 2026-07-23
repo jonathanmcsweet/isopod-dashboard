@@ -57,12 +57,12 @@ export function tailEgressLog(
     log: (...data: unknown[]): void => {
       const lines = data
         .map(String)
-        .flatMap(chunk => chunk.split('\n'))
-        .filter(line => line.length > 0);
+        .flatMap((chunk) => chunk.split('\n'))
+        .filter((line) => line.length > 0);
       if (lines.length > 0) onLines(lines);
     },
     error: (...data: unknown[]): void => {
-      const lines = data.map(String).filter(line => line.length > 0);
+      const lines = data.map(String).filter((line) => line.length > 0);
       if (lines.length > 0) onLines(lines);
     },
     warn: (): void => {},

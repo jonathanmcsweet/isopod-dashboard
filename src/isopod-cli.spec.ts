@@ -15,7 +15,14 @@ describe('listBoxes', () => {
   test('parses the --json contract', async () => {
     execMock.mockResolvedValue({
       stdout: JSON.stringify([
-        { name: 'mybox', status: 'running', ssh_host: 'isopod-mybox', port: 4222, color: 'teal', engine: 'podman' },
+        {
+          name: 'mybox',
+          status: 'running',
+          ssh_host: 'isopod-mybox',
+          port: 4222,
+          color: 'teal',
+          engine: 'podman',
+        },
       ]),
     });
     const boxes = await isopod.listBoxes();
@@ -60,16 +67,18 @@ describe('openInIde', () => {
 describe('tailEgressLog', () => {
   test('splits chunks into lines and stops via cancellation', async () => {
     let resolveExec: (value: { stdout: string }) => void = () => {};
-    execMock.mockImplementation((_cmd: string, _args: string[], options: { logger: { log: (...d: unknown[]) => void } }) => {
-      options.logger.log('a.example.com allowed\nb.example.com denied\n');
-      return new Promise(resolve => {
-        resolveExec = resolve;
-      });
-    });
+    execMock.mockImplementation(
+      (_cmd: string, _args: string[], options: { logger: { log: (...d: unknown[]) => void } }) => {
+        options.logger.log('a.example.com allowed\nb.example.com denied\n');
+        return new Promise((resolve) => {
+          resolveExec = resolve;
+        });
+      },
+    );
     const lines: string[] = [];
     let exited = false;
     const handle = isopod.tailEgressLog(
-      batch => lines.push(...batch),
+      (batch) => lines.push(...batch),
       () => {
         exited = true;
       },
@@ -77,7 +86,7 @@ describe('tailEgressLog', () => {
     expect(lines).toEqual(['a.example.com allowed', 'b.example.com denied']);
     handle.stop();
     resolveExec({ stdout: '' });
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
     expect(exited).toBe(true);
   });
 });

@@ -19,8 +19,17 @@ output or read isopod's on-disk state directly.
 - `pnpm build` — backend (`dist/extension.cjs`) then webview (`dist/webview/`).
 - `pnpm typecheck` — `tsc --noEmit` + `svelte-check`. Keep it at 0 errors.
 - `pnpm test` — vitest unit tests (`src/**/*.spec.ts`).
+- `pnpm check` — Biome format + lint (read-only); `pnpm check:fix` applies
+  safe fixes.
 
 Run all three green before committing.
+
+Formatting and linting is [Biome](https://biomejs.dev) (config in `biome.json`).
+A `simple-git-hooks` pre-commit hook runs `lint-staged`, which formats staged
+JS/TS/JSON with Biome. Biome deliberately does NOT touch `.svelte` (its linter
+flags template-used imports as unused and would delete them) or `.css` (it can't
+parse Tailwind v4 directives) — those are covered by `svelte-check` and the
+build. Do not add `.svelte`/`.css` back into Biome's `includes`.
 
 ## Layout
 
@@ -41,7 +50,10 @@ Run all three green before committing.
   `Co-Authored-By:` trailer naming the AI model used. Mirrors the isopod repo.
 - **Versioning:** bump `version` in `package.json` per SemVer when finishing a
   branch of work.
-- **UI components:** prefer `@podman-desktop/ui-svelte` (Table, NavPage, Button,
+
+### UI
+- Always use a functional-first immutability-first coding style unless truly not possible
+- Prefer `@podman-desktop/ui-svelte` (Table, NavPage, Button,
   Input, EmptyScreen, …) over hand-rolled markup so the page matches the native
   look. Style with the `--pd-*` CSS variables Podman Desktop injects; never
   hard-code theme colors.

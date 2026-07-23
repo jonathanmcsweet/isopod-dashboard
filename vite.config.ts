@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
 import { join } from 'node:path';
+import { defineConfig } from 'vite';
 
 // Backend build: the extension entrypoint Podman Desktop loads with require().
 // Built in SSR mode so node builtins resolve; output is a single CJS file
