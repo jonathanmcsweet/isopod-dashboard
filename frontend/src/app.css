@@ -1,0 +1,18 @@
+@import "tailwindcss";
+/* ui-svelte ships Tailwind class names in its compiled components; scan them
+   so the utilities they use are generated. node_modules is skipped by default,
+   hence the explicit source. */
+@source "../../node_modules/@podman-desktop/ui-svelte/dist";
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--pd-content-bg, #1b1d23);
+  color: var(--pd-content-text, #f2f2f2);
+  font-family: system-ui, -apple-system, sans-serif;
+}
