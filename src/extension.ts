@@ -2,7 +2,7 @@ import * as podmanDesktopApi from '@podman-desktop/api';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as isopod from './isopod-cli';
-import type { UiEvent, UiRequest } from './protocol';
+import type { ContainerView, UiEvent, UiRequest } from './protocol';
 
 const VIEW_TYPE = 'isopod-dashboard';
 
@@ -22,6 +22,48 @@ async function pushBoxes(): Promise<void> {
       kind: 'error',
       message: `isopod list failed: ${err instanceof Error ? err.message : String(err)}`,
     });
+  }
+}
+
+async function pushBoxInfo(name: string): Promise<void> {
+  try {
+    const info = await isopod.boxInfo(name);
+    await send({ kind: 'boxInfo', name, info });
+  } catch (err: unknown) {
+    await send({
+      kind: 'boxInfo',
+      name,
+      info: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+// Deep-link into a built-in container page (logs/terminal/inspect/details).
+// The dashboard doesn't reimplement these — it navigates to Podman Desktop's.
+async function openContainerView(name: string, view: ContainerView): Promise<void> {
+  const container = await isopod.findBoxContainer(name);
+  if (!container) {
+    await send({
+      kind: 'error',
+      message: `No live container for box '${name}' — start it first to view ${view}.`,
+    });
+    return;
+  }
+  const nav = podmanDesktopApi.navigation;
+  switch (view) {
+    case 'details':
+      await nav.navigateToContainer(container.id);
+      break;
+    case 'logs':
+      await nav.navigateToContainerLogs(container.id);
+      break;
+    case 'terminal':
+      await nav.navigateToContainerTerminal(container.id);
+      break;
+    case 'inspect':
+      await nav.navigateToContainerInspect(container.id);
+      break;
   }
 }
 
@@ -58,6 +100,22 @@ async function handleRequest(request: UiRequest): Promise<void> {
           message: `open failed: ${err instanceof Error ? err.message : String(err)}`,
         });
       }
+      break;
+    case 'boxInfo':
+      await pushBoxInfo(request.name);
+      break;
+    case 'openContainerView':
+      try {
+        await openContainerView(request.name, request.view);
+      } catch (err: unknown) {
+        await send({
+          kind: 'error',
+          message: `open ${request.view} failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      }
+      break;
+    case 'copyText':
+      await podmanDesktopApi.env.clipboard.writeText(request.text);
       break;
     case 'startBox':
     case 'stopBox': {
