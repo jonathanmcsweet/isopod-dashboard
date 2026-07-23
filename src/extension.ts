@@ -80,6 +80,32 @@ async function pushSecrets(): Promise<void> {
   }
 }
 
+async function pushDoctor(): Promise<void> {
+  try {
+    const report = await isopod.doctor();
+    await send({ kind: 'doctor', report });
+  } catch (err: unknown) {
+    await send({
+      kind: 'doctor',
+      report: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+async function pushGcPreview(): Promise<void> {
+  try {
+    const gc = await isopod.gcPreview();
+    await send({ kind: 'gcPreview', gc });
+  } catch (err: unknown) {
+    await send({
+      kind: 'gcPreview',
+      gc: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 async function pushEgressStatus(): Promise<void> {
   try {
     const status = await isopod.egressStatus();
@@ -139,6 +165,24 @@ async function handleRequest(request: UiRequest): Promise<void> {
       break;
     case 'secrets':
       await pushSecrets();
+      break;
+    case 'doctor':
+      await Promise.all([pushDoctor(), pushGcPreview()]);
+      break;
+    case 'gcRun':
+      try {
+        const summary = await isopod.gcRun();
+        await podmanDesktopApi.window.showInformationMessage(
+          summary || 'Garbage collection complete.',
+        );
+      } catch (err: unknown) {
+        await send({
+          kind: 'error',
+          message: `gc failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        await pushGcPreview();
+      }
       break;
     case 'openInIde':
       try {

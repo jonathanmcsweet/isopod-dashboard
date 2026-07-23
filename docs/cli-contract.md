@@ -112,6 +112,39 @@ values), each with the boxes whose meta attaches it:
 - `boxes`: box names attaching the secret, empty when none.
 - Secret _values_ never appear — names only.
 
+## `isopod doctor --json`
+
+A machine-readable health summary — a subset of the human `doctor` narrative,
+covering the actionable prerequisite checks:
+
+```json
+{
+  "version": "2.12.0",
+  "checks": [
+    { "level": "ok", "id": "ssh-tools", "label": "SSH client tools", "hint": "" },
+    {
+      "level": "warn",
+      "id": "hardening",
+      "label": "hardening profile",
+      "hint": "missing — boxes start without fingerprint masks"
+    }
+  ]
+}
+```
+
+- `level`: `ok` | `warn` | `error` | `na` (na = not applicable / absent).
+- `id`: stable slug; `label`/`hint`: human text (`hint` empty when none).
+- The long platform/virtualization advisories stay text-only in `isopod doctor`.
+
+## `isopod gc --json`
+
+Object listing the unreferenced isopod images `gc` would reclaim. Read-only —
+`--json` never removes anything (run `isopod gc --force` to reclaim):
+
+```json
+{ "images": ["localhost/isopod-base:v1", "localhost/isopod-box-abc:v1"] }
+```
+
 ## Versioning
 
 The contract is additive-only. Removing or renaming a field is a breaking

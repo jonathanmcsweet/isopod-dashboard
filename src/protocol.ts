@@ -33,6 +33,27 @@ export interface SecretIndex {
   secrets: SecretEntry[];
 }
 
+// `isopod doctor --json` — a machine-readable health summary. `level`: ok |
+// warn | error | na (na = not applicable / absent).
+export type DoctorLevel = 'ok' | 'warn' | 'error' | 'na' | string;
+
+export interface DoctorCheck {
+  level: DoctorLevel;
+  id: string;
+  label: string;
+  hint: string;
+}
+
+export interface DoctorReport {
+  version: string;
+  checks: DoctorCheck[];
+}
+
+// `isopod gc --json` — the unreferenced isopod images `gc` would reclaim.
+export interface GcPreview {
+  images: string[];
+}
+
 export interface EgressProxyStatus {
   running: boolean;
   port: number;
@@ -74,7 +95,9 @@ export type UiRequest =
   | { kind: 'egressAllow'; domain: string; }
   | { kind: 'egressAllowlist'; } // fetch baseline vs user allow-list
   | { kind: 'egressDenied'; } // fetch refused hostnames
-  | { kind: 'secrets'; }; // fetch the names-only secret index
+  | { kind: 'secrets'; } // fetch the names-only secret index
+  | { kind: 'doctor'; } // fetch the doctor health summary + gc preview
+  | { kind: 'gcRun'; }; // reclaim unreferenced images (isopod gc --force)
 
 // extension -> webview
 export type UiEvent =
@@ -86,5 +109,7 @@ export type UiEvent =
   | { kind: 'egressLog'; lines: string[]; }
   | { kind: 'egressLogState'; running: boolean; }
   | { kind: 'secrets'; secrets: SecretIndex | null; error?: string; }
+  | { kind: 'doctor'; report: DoctorReport | null; error?: string; }
+  | { kind: 'gcPreview'; gc: GcPreview | null; error?: string; }
   | { kind: 'busy'; name: string; busy: boolean; }
   | { kind: 'error'; message: string; };

@@ -2,9 +2,11 @@ import * as podmanDesktopApi from '@podman-desktop/api';
 import type {
   BoxInfo,
   BoxSummary,
+  DoctorReport,
   EgressAllowlist,
   EgressDenied,
   EgressStatus,
+  GcPreview,
   SecretIndex,
 } from './protocol';
 
@@ -57,6 +59,21 @@ export async function egressDenied(): Promise<EgressDenied> {
 
 export async function secrets(): Promise<SecretIndex> {
   return execJson<SecretIndex>(['secret', 'ls', '--json']);
+}
+
+export async function doctor(): Promise<DoctorReport> {
+  return execJson<DoctorReport>(['doctor', '--json']);
+}
+
+// Preview which images `gc` would reclaim — read-only, never removes.
+export async function gcPreview(): Promise<GcPreview> {
+  return execJson<GcPreview>(['gc', '--json']);
+}
+
+// Reclaim unreferenced images non-interactively. Returns the CLI's summary text.
+export async function gcRun(): Promise<string> {
+  const result = await podmanDesktopApi.process.exec(ISOPOD, ['gc', '--force']);
+  return result.stdout.trim();
 }
 
 export async function startBox(name: string): Promise<void> {

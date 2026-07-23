@@ -137,6 +137,37 @@ describe('secrets', () => {
   });
 });
 
+describe('doctor', () => {
+  test('parses the doctor health summary', async () => {
+    execMock.mockResolvedValue({
+      stdout: JSON.stringify({
+        version: '2.12.0',
+        checks: [{ level: 'ok', id: 'ssh-tools', label: 'SSH client tools', hint: '' }],
+      }),
+    });
+    const report = await isopod.doctor();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['doctor', '--json']);
+    expect(report.version).toBe('2.12.0');
+    expect(report.checks[0].id).toBe('ssh-tools');
+  });
+});
+
+describe('gc', () => {
+  test('gcPreview parses the reclaimable-image list', async () => {
+    execMock.mockResolvedValue({ stdout: JSON.stringify({ images: ['localhost/isopod-base:v1'] }) });
+    const gc = await isopod.gcPreview();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['gc', '--json']);
+    expect(gc.images).toEqual(['localhost/isopod-base:v1']);
+  });
+
+  test('gcRun executes gc --force and returns the trimmed summary', async () => {
+    execMock.mockResolvedValue({ stdout: 'removed localhost/isopod-base:v1\n' });
+    const summary = await isopod.gcRun();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['gc', '--force']);
+    expect(summary).toBe('removed localhost/isopod-base:v1');
+  });
+});
+
 describe('openInIde', () => {
   test('runs isopod code detached', async () => {
     execMock.mockResolvedValue({ stdout: '' });
