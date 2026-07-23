@@ -2,9 +2,12 @@ import * as podmanDesktopApi from '@podman-desktop/api';
 import type {
   BoxInfo,
   BoxSummary,
+  CreateOptions,
+  DoctorReport,
   EgressAllowlist,
   EgressDenied,
   EgressStatus,
+  GcPreview,
   SecretIndex,
 } from './protocol';
 
@@ -57,6 +60,42 @@ export async function egressDenied(): Promise<EgressDenied> {
 
 export async function secrets(): Promise<SecretIndex> {
   return execJson<SecretIndex>(['secret', 'ls', '--json']);
+}
+
+export async function doctor(): Promise<DoctorReport> {
+  return execJson<DoctorReport>(['doctor', '--json']);
+}
+
+// Preview which images `gc` would reclaim — read-only, never removes.
+export async function gcPreview(): Promise<GcPreview> {
+  return execJson<GcPreview>(['gc', '--json']);
+}
+
+// Reclaim unreferenced images non-interactively. Returns the CLI's summary text.
+export async function gcRun(): Promise<string> {
+  const result = await podmanDesktopApi.process.exec(ISOPOD, ['gc', '--force']);
+  return result.stdout.trim();
+}
+
+// Assemble the `isopod create` argv from wizard options. Empty/false fields are
+// omitted so the CLI applies its own defaults. Exported for unit testing.
+export function createArgs(options: CreateOptions): string[] {
+  const args = ['create', options.name];
+  for (const repo of options.repos) args.push('--repo', repo);
+  if (options.color) args.push('--color', options.color);
+  if (options.memory) args.push('--memory', options.memory);
+  if (options.cpus) args.push('--cpus', options.cpus);
+  if (options.engine) args.push('--engine', options.engine);
+  if (options.harden) args.push('--harden', options.harden);
+  if (options.dev) args.push('--dev');
+  if (options.noSudo) args.push('--no-sudo');
+  return args;
+}
+
+// `isopod create` is fully flag-driven and non-interactive, so process.exec
+// (no PTY) can run it directly.
+export async function createBox(options: CreateOptions): Promise<void> {
+  await podmanDesktopApi.process.exec(ISOPOD, createArgs(options));
 }
 
 export async function startBox(name: string): Promise<void> {
