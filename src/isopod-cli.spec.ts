@@ -97,6 +97,27 @@ describe('egressStatus', () => {
   });
 });
 
+describe('egressAllowlist', () => {
+  test('parses baseline and user arrays', async () => {
+    execMock.mockResolvedValue({
+      stdout: JSON.stringify({ baseline: ['github.com', '*.anthropic.com'], user: ['example.com'] }),
+    });
+    const allowlist = await isopod.egressAllowlist();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['egress', 'allowlist', '--json']);
+    expect(allowlist.baseline).toEqual(['github.com', '*.anthropic.com']);
+    expect(allowlist.user).toEqual(['example.com']);
+  });
+});
+
+describe('egressDenied', () => {
+  test('parses the refused-hostnames array', async () => {
+    execMock.mockResolvedValue({ stdout: JSON.stringify({ hostnames: ['ads.evil.net'] }) });
+    const denied = await isopod.egressDenied();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['egress', 'denied', '--json']);
+    expect(denied.hostnames).toEqual(['ads.evil.net']);
+  });
+});
+
 describe('openInIde', () => {
   test('runs isopod code detached', async () => {
     execMock.mockResolvedValue({ stdout: '' });

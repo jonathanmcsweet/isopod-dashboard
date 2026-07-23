@@ -81,6 +81,33 @@ async function pushEgressStatus(): Promise<void> {
   }
 }
 
+async function pushEgressAllowlist(): Promise<void> {
+  try {
+    const allowlist = await isopod.egressAllowlist();
+    await send({ kind: 'egressAllowlist', allowlist });
+  } catch (err: unknown) {
+    await send({
+      kind: 'egressAllowlist',
+      allowlist: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+async function pushEgressDenied(): Promise<void> {
+  try {
+    const denied = await isopod.egressDenied();
+    await send({ kind: 'egressDenied', denied });
+  } catch (err: unknown) {
+    // Reading the proxy log needs root; surface the reason rather than failing.
+    await send({
+      kind: 'egressDenied',
+      denied: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 function stopLogTail(): void {
   logTail?.stop();
   logTail = undefined;
@@ -89,7 +116,13 @@ function stopLogTail(): void {
 async function handleRequest(request: UiRequest): Promise<void> {
   switch (request.kind) {
     case 'refresh':
-      await Promise.all([pushBoxes(), pushEgressStatus()]);
+      await Promise.all([pushBoxes(), pushEgressStatus(), pushEgressAllowlist()]);
+      break;
+    case 'egressAllowlist':
+      await pushEgressAllowlist();
+      break;
+    case 'egressDenied':
+      await pushEgressDenied();
       break;
     case 'openInIde':
       try {
@@ -158,6 +191,7 @@ async function handleRequest(request: UiRequest): Promise<void> {
         await podmanDesktopApi.window.showInformationMessage(
           `Added ${request.domain} to the egress allow-list. Run 'sudo isopod egress apply' to activate it.`,
         );
+        await pushEgressAllowlist();
       } catch (err: unknown) {
         await send({
           kind: 'error',

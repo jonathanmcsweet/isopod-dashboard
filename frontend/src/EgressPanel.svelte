@@ -1,18 +1,27 @@
 <script lang="ts">
 import { Button, Input } from '@podman-desktop/ui-svelte';
-import type { EgressStatus } from '../../src/protocol';
+import type { EgressAllowlist, EgressDenied, EgressStatus } from '../../src/protocol';
 import { request } from './api';
 
 interface Props {
   status: EgressStatus | null;
   error: string | undefined;
+  allowlist: EgressAllowlist | null;
+  denied: EgressDenied | null;
+  deniedError: string | undefined;
   logLines: string[];
   logRunning: boolean;
 }
-let { status, error, logLines, logRunning }: Props = $props();
+let { status, error, allowlist, denied, deniedError, logLines, logRunning }: Props = $props();
 
 let domain = $state('');
 let logView = $state<HTMLElement | undefined>(undefined);
+
+// User domains already covered by a baseline entry (exact or via a `*.` wildcard
+// on the same apex) are redundant — flag them so the diff is honest.
+function coveredByBaseline(entry: string, baseline: string[]): boolean {
+  return baseline.some((b) => b === entry || (b.startsWith('*.') && entry.endsWith(b.slice(1))));
+}
 
 $effect(() => {
   // Follow the tail as lines arrive.
@@ -75,6 +84,45 @@ const firewallColor = $derived(
   </div>
 
   <div class="rounded-md bg-[var(--pd-content-card-bg,#24262e)] p-4">
+    <h2 class="mb-3 text-lg font-semibold">Allow-list</h2>
+    {#if allowlist}
+      <div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+        <div>
+          <p class="mb-1 opacity-70">Baseline ({allowlist.baseline.length})</p>
+          {#if allowlist.baseline.length === 0}
+            <p class="opacity-50">None</p>
+          {:else}
+            <ul class="flex flex-col gap-0.5 font-mono">
+              {#each allowlist.baseline as d (d)}
+                <li class="opacity-70">{d}</li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+        <div>
+          <p class="mb-1 opacity-70">Your additions ({allowlist.user.length})</p>
+          {#if allowlist.user.length === 0}
+            <p class="opacity-50">None — add one below.</p>
+          {:else}
+            <ul class="flex flex-col gap-0.5 font-mono">
+              {#each allowlist.user as d (d)}
+                <li class="flex items-center gap-2">
+                  <span class="text-[color:var(--pd-status-running,#16a34a)]">+ {d}</span>
+                  {#if coveredByBaseline(d, allowlist.baseline)}
+                    <span class="text-xs opacity-50">(already in baseline)</span>
+                  {/if}
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <p class="text-sm opacity-70">Allow-list unavailable (egress not configured).</p>
+    {/if}
+  </div>
+
+  <div class="rounded-md bg-[var(--pd-content-card-bg,#24262e)] p-4">
     <h2 class="mb-3 text-lg font-semibold">Allow a domain</h2>
     <div class="flex items-center gap-2">
       <Input placeholder="example.com" bind:value={domain} />
@@ -83,6 +131,40 @@ const firewallColor = $derived(
     <p class="mt-2 text-sm opacity-70">
       Appends to your user allow-list; activating it still requires <code>sudo isopod egress apply</code>.
     </p>
+  </div>
+
+  <div class="rounded-md bg-[var(--pd-content-card-bg,#24262e)] p-4">
+    <div class="mb-3 flex items-center">
+      <h2 class="grow text-lg font-semibold">Blocked requests</h2>
+      <Button type="secondary" on:click={() => request({ kind: 'egressDenied' })}>Refresh</Button>
+    </div>
+    {#if deniedError}
+      <p class="text-sm opacity-70">
+        Couldn't read blocked requests — needs root to read the proxy log ({deniedError}).
+      </p>
+    {:else if !denied}
+      <p class="text-sm opacity-50">
+        Refresh to list hostnames the proxy refused (candidates to allow).
+      </p>
+    {:else if denied.hostnames.length === 0}
+      <p class="text-sm opacity-50">No blocked requests logged.</p>
+    {:else}
+      <ul class="flex flex-col gap-1 text-sm">
+        {#each denied.hostnames as host (host)}
+          <li class="flex items-center gap-2">
+            <span class="grow font-mono">{host}</span>
+            <Button
+              type="link"
+              title="Add {host} to your allow-list"
+              on:click={() => request({ kind: 'egressAllow', domain: host })}
+            >Allow</Button>
+          </li>
+        {/each}
+      </ul>
+      <p class="mt-2 text-xs opacity-50">
+        Allowing a host appends to your list; activating still needs <code>sudo isopod egress apply</code>.
+      </p>
+    {/if}
   </div>
 
   <div class="flex min-h-0 grow flex-col rounded-md bg-[var(--pd-content-card-bg,#24262e)] p-4">
