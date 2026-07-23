@@ -35,6 +35,19 @@ export interface EgressStatus {
   proxy: EgressProxyStatus | null;
 }
 
+// `isopod egress allowlist --json` — the layered allow-list: shipped `baseline`
+// defaults vs `user` domains added via `egress allow`.
+export interface EgressAllowlist {
+  baseline: string[];
+  user: string[];
+}
+
+// `isopod egress denied --json` — hostnames the proxy refused (needs root to
+// read the proxy log; best-effort).
+export interface EgressDenied {
+  hostnames: string[];
+}
+
 // webview -> extension
 export type UiRequest =
   | { kind: 'refresh'; } // re-fetch boxes + egress status
@@ -46,13 +59,17 @@ export type UiRequest =
   | { kind: 'copyText'; text: string; } // copy to the host clipboard
   | { kind: 'egressLogStart'; }
   | { kind: 'egressLogStop'; }
-  | { kind: 'egressAllow'; domain: string; };
+  | { kind: 'egressAllow'; domain: string; }
+  | { kind: 'egressAllowlist'; } // fetch baseline vs user allow-list
+  | { kind: 'egressDenied'; }; // fetch refused hostnames
 
 // extension -> webview
 export type UiEvent =
   | { kind: 'boxes'; boxes: BoxSummary[]; }
   | { kind: 'boxInfo'; name: string; info: BoxInfo | null; error?: string; }
   | { kind: 'egressStatus'; status: EgressStatus | null; error?: string; }
+  | { kind: 'egressAllowlist'; allowlist: EgressAllowlist | null; error?: string; }
+  | { kind: 'egressDenied'; denied: EgressDenied | null; error?: string; }
   | { kind: 'egressLog'; lines: string[]; }
   | { kind: 'egressLogState'; running: boolean; }
   | { kind: 'busy'; name: string; busy: boolean; }

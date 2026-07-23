@@ -67,6 +67,32 @@ Object mirroring the fields `egress-status.txt` renders:
 - `firewall`: `active` | `inactive` | `unknown` (unknown = need root to read).
 - `proxy`: `null` when allow-list mode is not configured.
 
+## `isopod egress allowlist --json`
+
+Object with the layered allow-list — the shipped `baseline` defaults vs the
+`user` domains added through `isopod egress allow`:
+
+```json
+{
+  "baseline": ["github.com", "*.anthropic.com"],
+  "user": ["example.com"]
+}
+```
+
+- Both arrays are the raw domain tokens (a `*.` prefix means subdomains only),
+  empty when the corresponding file has no entries.
+
+## `isopod egress denied --json`
+
+Object listing hostnames the filtering proxy refused (best-effort; parsed from
+the proxy log, which needs root to read — errors exit non-zero as usual):
+
+```json
+{
+  "hostnames": ["tracker.evil.net", "ads.example.com"]
+}
+```
+
 ## Versioning
 
 The contract is additive-only. Removing or renaming a field is a breaking
