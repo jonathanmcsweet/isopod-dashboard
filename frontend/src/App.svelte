@@ -1,11 +1,20 @@
 <script lang="ts">
 import { Button, ErrorMessage } from '@podman-desktop/ui-svelte';
 import { onMount } from 'svelte';
-import type { BoxSummary, EgressAllowlist, EgressDenied, EgressStatus } from '../../src/protocol';
+import type {
+  BoxSummary,
+  EgressAllowlist,
+  EgressDenied,
+  EgressStatus,
+  SecretIndex,
+} from '../../src/protocol';
 import { onEvent, request } from './api';
 import BoxList from './BoxList.svelte';
 import EgressPanel from './EgressPanel.svelte';
-import { busyBoxes } from './stores.svelte';
+import SecretsPanel from './SecretsPanel.svelte';
+import { busyBoxes, detail } from './stores.svelte';
+
+type Tab = 'boxes' | 'egress' | 'secrets';
 
 let boxes = $state<BoxSummary[]>([]);
 let loaded = $state(false);
@@ -17,7 +26,20 @@ let deniedError = $state<string | undefined>(undefined);
 let logLines = $state<string[]>([]);
 let logRunning = $state(false);
 let lastError = $state<string | undefined>(undefined);
-let tab = $state<'boxes' | 'egress'>('boxes');
+let secrets = $state<SecretIndex | null>(null);
+let secretsError = $state<string | undefined>(undefined);
+let secretsLoaded = $state(false);
+let tab = $state<Tab>('boxes');
+
+// Fetch the secret index the first time the Secrets tab is opened (it needs a
+// CLI call; no point paying for it if the user never looks).
+function selectTab(next: Tab): void {
+  tab = next;
+  if (next === 'secrets' && !secretsLoaded) {
+    secretsLoaded = true;
+    request({ kind: 'secrets' });
+  }
+}
 
 const MAX_LOG_LINES = 2000;
 
@@ -38,6 +60,10 @@ onMount(() => {
       case 'egressDenied':
         denied = event.denied;
         deniedError = event.error;
+        break;
+      case 'secrets':
+        secrets = event.secrets;
+        secretsError = event.error;
         break;
       case 'egressLog':
         logLines = [...logLines, ...event.lines].slice(-MAX_LOG_LINES);
@@ -65,14 +91,14 @@ onMount(() => {
   </div>
 
   <div class="mb-4 flex gap-1 border-b border-[var(--pd-content-divider,#333)]">
-    {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }] as tabDef (tabDef.id)}
+    {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }] as tabDef (tabDef.id)}
       <button
         class="
           cursor-pointer border-b-2 px-4 py-2 text-sm {tab === tabDef.id
           ? 'border-[var(--pd-tab-highlight,#a074c4)] font-semibold'
           : 'border-transparent opacity-70 hover:opacity-100'}
         "
-        onclick={() => (tab = tabDef.id as 'boxes' | 'egress')}
+        onclick={() => selectTab(tabDef.id as Tab)}
       >
         {tabDef.label}
       </button>
@@ -88,8 +114,12 @@ onMount(() => {
 
   <div class="min-h-0 grow overflow-auto">
     {#if tab === 'boxes'}
-      <BoxList {boxes} {loaded} />
-    {:else}
+      {#if detail.name !== null}
+        <BoxDetail name={detail.name} info={detail.info} error={detail.error} />
+      {:else}
+        <BoxList {boxes} {loaded} />
+      {/if}
+    {:else if tab === 'egress'}
       <EgressPanel
         status={egress}
         error={egressError}
@@ -99,6 +129,8 @@ onMount(() => {
         {logLines}
         {logRunning}
       />
+    {:else}
+      <SecretsPanel {secrets} error={secretsError} loaded={secretsLoaded} />
     {/if}
   </div>
 </div>
