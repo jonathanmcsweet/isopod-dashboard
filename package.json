@@ -1,0 +1,55 @@
+{
+  "name": "isopod-dashboard",
+  "displayName": "Isopod Dashboard",
+  "description": "Manage isopod AI-coding sandboxes: box list, IDE launch, and egress observability",
+  "version": "0.1.0",
+  "publisher": "isopod",
+  "license": "Apache-2.0",
+  "engines": {
+    "podman-desktop": ">=1.10.0"
+  },
+  "main": "./dist/extension.cjs",
+  "icon": "icon.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "isopod.openDashboard",
+        "title": "Isopod: Open dashboard"
+      },
+      {
+        "command": "isopod.openInIde",
+        "title": "Isopod: Open box in VSCodium"
+      }
+    ],
+    "menus": {
+      "dashboard/container": [
+        {
+          "command": "isopod.openInIde",
+          "title": "Open in VSCodium",
+          "when": "io.isopod.box in containerLabelKeys"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "vite build && vite build -c frontend/vite.config.mts",
+    "watch": "vite build -w",
+    "typecheck": "tsc --noEmit && svelte-check --tsconfig frontend/tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@podman-desktop/api": "^1.15.0",
+    "@podman-desktop/ui-svelte": "^1.15.0",
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tsconfig/svelte": "^5.0.4",
+    "@types/node": "^26.1.1",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.0"
+  },
+  "type": "module"
+}
