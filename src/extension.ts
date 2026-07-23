@@ -67,6 +67,19 @@ async function openContainerView(name: string, view: ContainerView): Promise<voi
   }
 }
 
+async function pushSecrets(): Promise<void> {
+  try {
+    const secrets = await isopod.secrets();
+    await send({ kind: 'secrets', secrets });
+  } catch (err: unknown) {
+    await send({
+      kind: 'secrets',
+      secrets: null,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 async function pushEgressStatus(): Promise<void> {
   try {
     const status = await isopod.egressStatus();
@@ -123,6 +136,9 @@ async function handleRequest(request: UiRequest): Promise<void> {
       break;
     case 'egressDenied':
       await pushEgressDenied();
+      break;
+    case 'secrets':
+      await pushSecrets();
       break;
     case 'openInIde':
       try {

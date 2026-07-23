@@ -118,6 +118,25 @@ describe('egressDenied', () => {
   });
 });
 
+describe('secrets', () => {
+  test('parses the secret index with per-box attribution', async () => {
+    execMock.mockResolvedValue({
+      stdout: JSON.stringify({
+        backend: 'keychain-linux',
+        secrets: [
+          { name: 'ANTHROPIC_API_KEY', boxes: ['a', 'b'] },
+          { name: 'UNUSED', boxes: [] },
+        ],
+      }),
+    });
+    const index = await isopod.secrets();
+    expect(execMock).toHaveBeenCalledWith('isopod', ['secret', 'ls', '--json']);
+    expect(index.backend).toBe('keychain-linux');
+    expect(index.secrets[0]).toEqual({ name: 'ANTHROPIC_API_KEY', boxes: ['a', 'b'] });
+    expect(index.secrets[1].boxes).toEqual([]);
+  });
+});
+
 describe('openInIde', () => {
   test('runs isopod code detached', async () => {
     execMock.mockResolvedValue({ stdout: '' });
