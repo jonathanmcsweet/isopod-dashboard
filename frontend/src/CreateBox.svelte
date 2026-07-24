@@ -2,6 +2,7 @@
 import { Button, Checkbox, Dropdown, Input, Spinner } from '@podman-desktop/ui-svelte';
 import type { CreateOptions } from '../../src/protocol';
 import { request } from './api';
+import Breadcrumb from './Breadcrumb.svelte';
 import { createForm, resetCreateForm } from './stores.svelte';
 
 // isopod's preset palette (share/colors); '' = auto-rotate.
@@ -50,9 +51,9 @@ function submit(): void {
 </script>
 
 <div class="flex h-full flex-col gap-4">
-  <div class="flex items-center gap-3">
-    <Button type="link" title="Back to the box list" on:click={resetCreateForm}>← Back</Button>
-    <h2 class="grow text-lg font-semibold">New box</h2>
+  <div class="flex flex-col gap-2">
+    <Breadcrumb parent="Boxes" title="New box" onnavigate={resetCreateForm} />
+    <h2 class="text-lg font-semibold">New box</h2>
   </div>
 
   <div class="flex flex-col gap-4 rounded-md bg-[var(--pd-content-card-bg,#24262e)] p-4">

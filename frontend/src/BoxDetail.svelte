@@ -2,6 +2,7 @@
 import { Button, Spinner } from '@podman-desktop/ui-svelte';
 import type { BoxInfo, ContainerView } from '../../src/protocol';
 import { request } from './api';
+import Breadcrumb from './Breadcrumb.svelte';
 import { closeDetail } from './stores.svelte';
 
 interface Props {
@@ -18,6 +19,22 @@ const statusColor = $derived(
     ? 'var(--pd-status-dead, #dc2626)'
     : 'var(--pd-status-stopped, #6b7280)',
 );
+
+// Friendly isolation label for the detail view — mirrors the list badge, but
+// spelled out. Empty for a plain container (or an older CLI without the field).
+const isolationLabel = $derived.by(() => {
+  const rt = info?.runtime && info.runtime !== 'container' ? info.runtime : '';
+  switch (info?.isolation) {
+    case 'microvm':
+      return `microVM${rt ? ` · ${rt}` : ''}`;
+    case 'sandbox':
+      return `sandbox${rt ? ` · ${rt}` : ''}`;
+    case 'unknown':
+      return rt;
+    default:
+      return '';
+  }
+});
 
 function copy(text: string): void {
   request({ kind: 'copyText', text });
@@ -36,18 +53,20 @@ const deepLinks: { view: ContainerView; label: string; }[] = [
 </script>
 
 <div class="flex h-full flex-col gap-4">
-  <div class="flex items-center gap-3">
-    <Button type="link" title="Back to the box list" on:click={closeDetail}>← Back</Button>
-    {#if info}
-      <span class="inline-block h-3 w-3 rounded-full" style="background-color: {statusColor}"></span>
-    {/if}
-    <h2 class="grow truncate text-lg font-semibold">{name}</h2>
-    {#if info?.color}
-      <span class="flex items-center gap-1.5 text-sm opacity-70">
-        <span class="inline-block h-3 w-3 rounded" style="background-color: {info.color}"></span>
-        {info.color}
-      </span>
-    {/if}
+  <div class="flex flex-col gap-2">
+    <Breadcrumb parent="Boxes" title={name} onnavigate={closeDetail} />
+    <div class="flex items-center gap-3">
+      {#if info}
+        <span class="inline-block h-3 w-3 rounded-full" style="background-color: {statusColor}"></span>
+      {/if}
+      <h2 class="grow truncate text-lg font-semibold">{name}</h2>
+      {#if info?.color}
+        <span class="flex items-center gap-1.5 text-sm opacity-70">
+          <span class="inline-block h-3 w-3 rounded" style="background-color: {info.color}"></span>
+          {info.color}
+        </span>
+      {/if}
+    </div>
   </div>
 
   {#if error}
@@ -76,7 +95,14 @@ const deepLinks: { view: ContainerView; label: string; }[] = [
         <span class="font-mono">{info.port === null ? '?' : info.port}</span>
 
         <span class="opacity-70">Engine</span>
-        <span>{info.engine}</span>
+        <span class="flex items-center gap-2">
+          {info.engine}
+          {#if isolationLabel}
+            <span
+              class="rounded border border-[var(--pd-tab-highlight,#a074c4)] px-1.5 py-0.5 text-[11px] leading-none text-[var(--pd-tab-highlight,#a074c4)]"
+            >{isolationLabel}</span>
+          {/if}
+        </span>
 
         <span class="opacity-70">Workspace</span>
         <span class="flex items-center gap-2">

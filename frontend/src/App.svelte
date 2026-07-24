@@ -11,6 +11,7 @@ import type {
   SecretIndex,
 } from '../../src/protocol';
 import { onEvent, request } from './api';
+import BoxDetail from './BoxDetail.svelte';
 import BoxList from './BoxList.svelte';
 import CreateBox from './CreateBox.svelte';
 import DoctorPanel from './DoctorPanel.svelte';
@@ -62,6 +63,14 @@ onMount(() => {
       case 'boxes':
         boxes = event.boxes;
         loaded = true;
+        break;
+      case 'boxInfo':
+        // Fill the open detail panel. Guard on name so a stale response (the
+        // user already opened another box, or closed the panel) is ignored.
+        if (detail.name === event.name) {
+          detail.info = event.info;
+          detail.error = event.error;
+        }
         break;
       case 'egressStatus':
         egress = event.status;
@@ -126,16 +135,21 @@ onMount(() => {
     <Button type="secondary" on:click={() => request({ kind: 'refresh' })}>Refresh</Button>
   </div>
 
-  <div class="mb-4 flex gap-1 border-b border-[var(--pd-content-divider,#333)]">
+  <!-- Tabs mirror @podman-desktop/ui-svelte's Tab component (3px underline +
+       --pd-tab-* colors) so they match the native look, but stay click-driven
+       since the webview has no router. -->
+  <div class="mb-4 flex gap-2 border-b border-[var(--pd-content-divider,#333)]">
     {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }, {
       id: 'doctor',
       label: 'Doctor',
     }] as tabDef (tabDef.id)}
       <button
+        type="button"
+        aria-current={tab === tabDef.id ? 'page' : undefined}
         class="
-          cursor-pointer border-b-2 px-4 py-2 text-sm {tab === tabDef.id
-          ? 'border-[var(--pd-tab-highlight,#a074c4)] font-semibold'
-          : 'border-transparent opacity-70 hover:opacity-100'}
+          -mb-px cursor-pointer border-b-[3px] px-4 py-2 text-sm whitespace-nowrap {tab === tabDef.id
+          ? 'border-[var(--pd-tab-highlight,#a074c4)] text-[var(--pd-tab-text-highlight,#fff)]'
+          : 'border-transparent text-[var(--pd-tab-text,#a3a3a3)] hover:border-[var(--pd-tab-hover,#555)]'}
         "
         onclick={() => selectTab(tabDef.id as Tab)}
       >

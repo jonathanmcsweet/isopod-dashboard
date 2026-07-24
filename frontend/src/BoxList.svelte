@@ -3,6 +3,7 @@ import { EmptyScreen, Table, TableColumn, TableRow, TableSimpleColumn } from '@p
 import type { BoxSummary } from '../../src/protocol';
 import BoxActionsCell from './BoxActionsCell.svelte';
 import BoxColorCell from './BoxColorCell.svelte';
+import BoxEngineCell from './BoxEngineCell.svelte';
 import BoxNameCell from './BoxNameCell.svelte';
 import BoxStatusCell from './BoxStatusCell.svelte';
 
@@ -12,6 +13,10 @@ interface Props {
 }
 let { boxes, loaded }: Props = $props();
 
+// Widths are `minmax(floor, fr)` so the table fills the available width and the
+// columns share it proportionally instead of being pinned to fixed pixels (which
+// left dead space on wide windows and clipped the Actions column). The floors
+// keep each column readable; only a very narrow window scrolls horizontally.
 const columns = [
   new TableColumn<BoxSummary>('Status', {
     width: '70px',
@@ -19,31 +24,31 @@ const columns = [
     comparator: (a, b) => a.status.localeCompare(b.status),
   }),
   new TableColumn<BoxSummary>('Name', {
-    width: '2fr',
+    width: 'minmax(8rem,2fr)',
     renderer: BoxNameCell,
     comparator: (a, b) => a.name.localeCompare(b.name),
   }),
   new TableColumn<BoxSummary, string>('SSH host', {
-    width: '2fr',
+    width: 'minmax(8rem,2fr)',
     renderMapping: box => box.ssh_host,
     renderer: TableSimpleColumn,
   }),
   new TableColumn<BoxSummary, string>('Port', {
-    width: '80px',
+    width: 'minmax(4rem,0.6fr)',
     renderMapping: box => (box.port === null ? '?' : String(box.port)),
     renderer: TableSimpleColumn,
   }),
   new TableColumn<BoxSummary>('Color', {
-    width: '110px',
+    width: 'minmax(6rem,1fr)',
     renderer: BoxColorCell,
   }),
-  new TableColumn<BoxSummary, string>('Engine', {
-    width: '100px',
-    renderMapping: box => box.engine,
-    renderer: TableSimpleColumn,
+  new TableColumn<BoxSummary>('Engine', {
+    width: 'minmax(9rem,1.4fr)',
+    renderer: BoxEngineCell,
+    comparator: (a, b) => a.engine.localeCompare(b.engine),
   }),
   new TableColumn<BoxSummary>('Actions', {
-    width: '150px',
+    width: 'minmax(9rem,0.8fr)',
     align: 'right',
     renderer: BoxActionsCell,
   }),
