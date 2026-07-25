@@ -19,6 +19,17 @@ const engineOptions = [
   { value: 'docker', label: 'docker' },
   { value: 'container', label: 'container (Apple, experimental)' },
 ];
+// Isolation runtime. '' lets isopod auto-select a microVM when one is available.
+// krun/kata are microVMs (own kernel); runsc is a gVisor syscall sandbox;
+// 'container' forces a plain shared-kernel container. Note krun needs
+// `isopod doctor` to confirm KVM + the krun runtime on the host.
+const runtimeOptions = [
+  { value: '', label: 'auto (microVM when available)' },
+  { value: 'krun', label: 'microVM — krun' },
+  { value: 'kata', label: 'microVM — kata' },
+  { value: 'runsc', label: 'sandbox — gVisor (runsc)' },
+  { value: 'container', label: 'plain container' },
+];
 const hardenOptions = [
   { value: '', label: 'default' },
   { value: 'off', label: 'off' },
@@ -42,6 +53,7 @@ function submit(): void {
     memory: createForm.memory.trim() || undefined,
     cpus: createForm.cpus.trim() || undefined,
     engine: createForm.engine || undefined,
+    runtime: createForm.runtime || undefined,
     harden: createForm.harden || undefined,
     dev: createForm.dev || undefined,
     noSudo: createForm.noSudo || undefined,
@@ -96,6 +108,10 @@ function submit(): void {
       <label class="flex flex-col gap-1 text-sm">
         <span class="opacity-70">Engine</span>
         <Dropdown bind:value={createForm.engine} options={engineOptions} />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="opacity-70">Runtime</span>
+        <Dropdown bind:value={createForm.runtime} options={runtimeOptions} />
       </label>
       <label class="flex flex-col gap-1 text-sm">
         <span class="opacity-70">Memory</span>

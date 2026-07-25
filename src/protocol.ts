@@ -71,6 +71,10 @@ export interface CreateOptions {
   memory?: string; // --memory <e.g. 2g>
   cpus?: string; // --cpus <n>
   engine?: string; // --engine podman|docker|container
+  // Runtime / isolation tier. '' = isopod's default (auto-select a microVM when
+  // available). 'container' maps to --container (force a plain container); any
+  // other value (e.g. 'krun', 'kata', 'runsc') maps to --runtime <name>.
+  runtime?: string;
   harden?: string; // --harden default|off
   dev?: boolean; // --dev
   noSudo?: boolean; // --no-sudo
