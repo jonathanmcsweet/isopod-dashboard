@@ -3,6 +3,7 @@ import { Button, Spinner } from '@podman-desktop/ui-svelte';
 import type { BoxInfo, ContainerView } from '../../src/protocol';
 import { request } from './api';
 import Breadcrumb from './Breadcrumb.svelte';
+import IsolationBadge from './IsolationBadge.svelte';
 import { closeDetail } from './stores.svelte';
 
 interface Props {
@@ -19,22 +20,6 @@ const statusColor = $derived(
     ? 'var(--pd-status-dead, #dc2626)'
     : 'var(--pd-status-stopped, #6b7280)',
 );
-
-// Friendly isolation label for the detail view — mirrors the list badge, but
-// spelled out. Empty for a plain container (or an older CLI without the field).
-const isolationLabel = $derived.by(() => {
-  const rt = info?.runtime && info.runtime !== 'container' ? info.runtime : '';
-  switch (info?.isolation) {
-    case 'microvm':
-      return `microVM${rt ? ` · ${rt}` : ''}`;
-    case 'sandbox':
-      return `sandbox${rt ? ` · ${rt}` : ''}`;
-    case 'unknown':
-      return rt;
-    default:
-      return '';
-  }
-});
 
 function copy(text: string): void {
   request({ kind: 'copyText', text });
@@ -97,11 +82,7 @@ const deepLinks: { view: ContainerView; label: string; }[] = [
         <span class="opacity-70">Engine</span>
         <span class="flex items-center gap-2">
           {info.engine}
-          {#if isolationLabel}
-            <span
-              class="rounded border border-[var(--pd-tab-highlight,#a074c4)] px-1.5 py-0.5 text-[11px] leading-none text-[var(--pd-tab-highlight,#a074c4)]"
-            >{isolationLabel}</span>
-          {/if}
+          <IsolationBadge isolation={info.isolation} runtime={info.runtime} showLabel />
         </span>
 
         <span class="opacity-70">Workspace</span>
