@@ -11,7 +11,6 @@ import type {
   SecretIndex,
 } from '../../src/protocol';
 import { onEvent, request } from './api';
-import BoxDetail from './BoxDetail.svelte';
 import BoxList from './BoxList.svelte';
 import CreateBox from './CreateBox.svelte';
 import DoctorPanel from './DoctorPanel.svelte';
