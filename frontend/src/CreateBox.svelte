@@ -2,6 +2,7 @@
 import { Button, Checkbox, Dropdown, Input, Spinner } from '@podman-desktop/ui-svelte';
 import type { CreateOptions } from '../../src/protocol';
 import { request } from './api';
+import Breadcrumb from './Breadcrumb.svelte';
 import { createForm, resetCreateForm } from './stores.svelte';
 
 // isopod's preset palette (share/colors); '' = auto-rotate.
@@ -17,6 +18,17 @@ const engineOptions = [
   { value: 'podman', label: 'podman' },
   { value: 'docker', label: 'docker' },
   { value: 'container', label: 'container (Apple, experimental)' },
+];
+// Isolation runtime. '' lets isopod auto-select a microVM when one is available.
+// krun/kata are microVMs (own kernel); runsc is a gVisor syscall sandbox;
+// 'container' forces a plain shared-kernel container. Note krun needs
+// `isopod doctor` to confirm KVM + the krun runtime on the host.
+const runtimeOptions = [
+  { value: '', label: 'auto (microVM when available)' },
+  { value: 'krun', label: 'microVM — krun' },
+  { value: 'kata', label: 'microVM — kata' },
+  { value: 'runsc', label: 'sandbox — gVisor (runsc)' },
+  { value: 'container', label: 'plain container' },
 ];
 const hardenOptions = [
   { value: '', label: 'default' },
@@ -41,6 +53,7 @@ function submit(): void {
     memory: createForm.memory.trim() || undefined,
     cpus: createForm.cpus.trim() || undefined,
     engine: createForm.engine || undefined,
+    runtime: createForm.runtime || undefined,
     harden: createForm.harden || undefined,
     dev: createForm.dev || undefined,
     noSudo: createForm.noSudo || undefined,
@@ -50,9 +63,9 @@ function submit(): void {
 </script>
 
 <div class="flex h-full flex-col gap-4">
-  <div class="flex items-center gap-3">
-    <Button type="link" title="Back to the box list" on:click={resetCreateForm}>← Back</Button>
-    <h2 class="grow text-lg font-semibold">New box</h2>
+  <div class="flex flex-col gap-2">
+    <Breadcrumb parent="Boxes" title="New box" onnavigate={resetCreateForm} />
+    <h2 class="text-lg font-semibold">New box</h2>
   </div>
 
   <div class="flex flex-col gap-4 rounded-md bg-[var(--pd-content-card-bg,#24262e)] p-4">
@@ -95,6 +108,10 @@ function submit(): void {
       <label class="flex flex-col gap-1 text-sm">
         <span class="opacity-70">Engine</span>
         <Dropdown bind:value={createForm.engine} options={engineOptions} />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="opacity-70">Runtime</span>
+        <Dropdown bind:value={createForm.runtime} options={runtimeOptions} />
       </label>
       <label class="flex flex-col gap-1 text-sm">
         <span class="opacity-70">Memory</span>

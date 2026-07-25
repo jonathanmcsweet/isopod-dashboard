@@ -2,6 +2,8 @@
 import { Button, Spinner } from '@podman-desktop/ui-svelte';
 import type { BoxInfo, ContainerView } from '../../src/protocol';
 import { request } from './api';
+import Breadcrumb from './Breadcrumb.svelte';
+import IsolationBadge from './IsolationBadge.svelte';
 import { closeDetail } from './stores.svelte';
 
 interface Props {
@@ -36,18 +38,20 @@ const deepLinks: { view: ContainerView; label: string; }[] = [
 </script>
 
 <div class="flex h-full flex-col gap-4">
-  <div class="flex items-center gap-3">
-    <Button type="link" title="Back to the box list" on:click={closeDetail}>← Back</Button>
-    {#if info}
-      <span class="inline-block h-3 w-3 rounded-full" style="background-color: {statusColor}"></span>
-    {/if}
-    <h2 class="grow truncate text-lg font-semibold">{name}</h2>
-    {#if info?.color}
-      <span class="flex items-center gap-1.5 text-sm opacity-70">
-        <span class="inline-block h-3 w-3 rounded" style="background-color: {info.color}"></span>
-        {info.color}
-      </span>
-    {/if}
+  <div class="flex flex-col gap-2">
+    <Breadcrumb parent="Boxes" title={name} onnavigate={closeDetail} />
+    <div class="flex items-center gap-3">
+      {#if info}
+        <span class="inline-block h-3 w-3 rounded-full" style="background-color: {statusColor}"></span>
+      {/if}
+      <h2 class="grow truncate text-lg font-semibold">{name}</h2>
+      {#if info?.color}
+        <span class="flex items-center gap-1.5 text-sm opacity-70">
+          <span class="inline-block h-3 w-3 rounded" style="background-color: {info.color}"></span>
+          {info.color}
+        </span>
+      {/if}
+    </div>
   </div>
 
   {#if error}
@@ -76,7 +80,10 @@ const deepLinks: { view: ContainerView; label: string; }[] = [
         <span class="font-mono">{info.port === null ? '?' : info.port}</span>
 
         <span class="opacity-70">Engine</span>
-        <span>{info.engine}</span>
+        <span class="flex items-center gap-2">
+          {info.engine}
+          <IsolationBadge isolation={info.isolation} runtime={info.runtime} showLabel />
+        </span>
 
         <span class="opacity-70">Workspace</span>
         <span class="flex items-center gap-2">

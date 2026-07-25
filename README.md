@@ -25,17 +25,54 @@ no isopod logic is reimplemented. Data flows through the JSON contract in
 
 ## Development
 
+### Prerequisites
+
+- [pnpm](https://pnpm.io) (the repo pins its package manager / build allowlist in
+  `pnpm-workspace.yaml`)
+- Podman Desktop >= 1.10 (to load and run the extension)
+- `isopod` >= 2.9 on PATH — the extension shells out to it; without it the UI
+  loads but every box/egress read fails.
+
+### Install and build
+
 ```sh
-pnpm install
+pnpm install     # deps + git hooks
 pnpm build       # backend (dist/extension.cjs) + webview (dist/webview/)
-pnpm typecheck   # tsc + svelte-check
-pnpm test        # vitest unit tests
 ```
 
-To try it: Podman Desktop > Extensions > Install custom extension from a
-folder, pointing at this repo after `pnpm build` (the manifest is
-`package.json`, entrypoint `dist/extension.cjs`). Then run the command
-"Isopod: Open dashboard" or use the left-navigation entry.
+### Load into Podman Desktop
+
+1. Run `pnpm build` so `dist/` exists (`package.json` is the manifest,
+   `dist/extension.cjs` the entrypoint).
+2. Enable developer mode: **Preferences > Extensions > Development Mode**. Local
+   extensions cannot be loaded until this is on.
+3. **Extensions > Install custom extension from a folder**, pointing at this repo
+   root. Confirm it appears and is enabled on the **Extensions** page — the
+   command and sidebar entry below exist only once it activates.
+4. Open the dashboard either way:
+   - press **F1** to open the command palette and run **"Isopod: Open
+     dashboard"**, or
+   - click the **Isopod** icon in the left navigation sidebar.
+
+If neither shows up, the extension didn't activate — check the **Extensions**
+page and the dev console (**View > Toggle Developer Tools**) for errors. To
+iterate, run `pnpm watch` and reload the extension from the **Extensions** page.
+
+### Test and verify
+
+Run these green before committing:
+
+```sh
+pnpm typecheck     # tsc --noEmit + svelte-check (keep at 0 errors)
+pnpm test          # vitest unit tests (src/**/*.spec.ts)
+pnpm lint          # Biome lint (lint:fix applies safe fixes)
+pnpm format:check  # dprint (format applies)
+```
+
+Tests run against a stubbed `@podman-desktop/api`, so they need neither a running
+Podman Desktop nor isopod. To exercise the real CLI path, create a box with
+isopod, then confirm it appears on the **Boxes** page and that start/stop and
+**Open in VSCodium** work from the row.
 
 ## Layout
 

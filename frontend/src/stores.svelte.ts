@@ -37,6 +37,7 @@ export interface CreateForm {
   memory: string;
   cpus: string;
   engine: string;
+  runtime: string;
   harden: string;
   dev: boolean;
   noSudo: boolean;
@@ -51,6 +52,7 @@ const emptyCreateForm: CreateForm = {
   memory: '',
   cpus: '',
   engine: '',
+  runtime: '',
   harden: '',
   dev: false,
   noSudo: false,
