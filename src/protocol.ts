@@ -9,6 +9,14 @@ export interface BoxSummary {
   port: number | null;
   color: string | null;
   engine: 'podman' | 'docker' | 'container' | string;
+  // The container runtime backing the box: 'container' for a plain shared-kernel
+  // container, otherwise the runtime name (e.g. 'krun', 'kata', 'runsc').
+  // Optional — emitted by isopod >= 2.14; older CLIs omit it.
+  runtime?: string;
+  // Isolation class derived from the runtime tier: 'container' (shared kernel),
+  // 'sandbox' (syscall sandbox, e.g. gVisor), 'microvm' (own guest kernel), or
+  // 'unknown' (a configured runtime isopod can't classify). Optional — as above.
+  isolation?: 'container' | 'sandbox' | 'microvm' | 'unknown' | string;
 }
 
 // `isopod info <name> --json` — the six shared box facts plus connection detail.
@@ -63,6 +71,10 @@ export interface CreateOptions {
   memory?: string; // --memory <e.g. 2g>
   cpus?: string; // --cpus <n>
   engine?: string; // --engine podman|docker|container
+  // Runtime / isolation tier. '' = isopod's default (auto-select a microVM when
+  // available). 'container' maps to --container (force a plain container); any
+  // other value (e.g. 'krun', 'kata', 'runsc') maps to --runtime <name>.
+  runtime?: string;
   harden?: string; // --harden default|off
   dev?: boolean; // --dev
   noSudo?: boolean; // --no-sudo

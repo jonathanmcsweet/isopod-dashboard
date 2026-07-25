@@ -86,6 +86,10 @@ export function createArgs(options: CreateOptions): string[] {
   if (options.memory) args.push('--memory', options.memory);
   if (options.cpus) args.push('--cpus', options.cpus);
   if (options.engine) args.push('--engine', options.engine);
+  // Runtime: 'container' forces a plain container; a named runtime selects it;
+  // '' leaves isopod to auto-select (a microVM when one is available).
+  if (options.runtime === 'container') args.push('--container');
+  else if (options.runtime) args.push('--runtime', options.runtime);
   if (options.harden) args.push('--harden', options.harden);
   if (options.dev) args.push('--dev');
   if (options.noSudo) args.push('--no-sudo');

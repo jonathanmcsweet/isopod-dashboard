@@ -17,7 +17,9 @@ Array (possibly empty) of box summaries:
     "ssh_host": "isopod-mybox",
     "port": 4222,
     "color": "teal",
-    "engine": "podman"
+    "engine": "podman",
+    "runtime": "krun",
+    "isolation": "microvm"
   }
 ]
 ```
@@ -27,6 +29,14 @@ Array (possibly empty) of box summaries:
 - `port`: integer, or `null` when unknown.
 - `color`: string, or `null` when unset.
 - `engine`: `podman` | `docker` | `container` (per-box engine, as `box_engine`).
+- `runtime`: the box's effective container runtime — `container` for a plain
+  Tier 1 container, otherwise the runtime name (`krun`, `kata`, `runsc`, …).
+  From box meta. Added in isopod 2.14; consumers must treat it as optional.
+- `isolation`: the runtime's tier as a class — `container` (Tier 1, shares the
+  host kernel), `sandbox` (Tier 2 syscall sandbox, e.g. gVisor), `microvm`
+  (Tier 3, its own guest kernel), or `unknown` (a configured runtime not in the
+  tier table). Apple `container` boxes report `microvm` (each is its own VM).
+  Added in isopod 2.14; optional.
 
 ## `isopod info <name> --json`
 
@@ -40,12 +50,16 @@ Object for one box — the same facts `info.txt` renders:
   "port": 4222,
   "color": "teal",
   "engine": "podman",
+  "runtime": "krun",
+  "isolation": "microvm",
   "forwards": ["8080:8080"],
   "secrets": ["ANTHROPIC_API_KEY"],
   "workspace": "/home/dev/workspace"
 }
 ```
 
+- Shares every `isopod list --json` box field (including `runtime` and
+  `isolation`, both added in isopod 2.14 and optional).
 - `forwards` and `secrets`: arrays, empty when none (never placeholder prose).
 - Secret _names_ only — values never leave the host store.
 
