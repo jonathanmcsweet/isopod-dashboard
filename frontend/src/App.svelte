@@ -134,9 +134,11 @@ onMount(() => {
     <Button type="secondary" on:click={() => request({ kind: 'refresh' })}>Refresh</Button>
   </div>
 
-  <!-- Tabs mirror @podman-desktop/ui-svelte's Tab component (3px underline +
-       --pd-tab-* colors) so they match the native look, but stay click-driven
-       since the webview has no router. -->
+  <!-- Click-driven tabs (the webview has no router). The active tab uses the
+       accent-purple link color, --pd-link (accent1[400]/[600]) — the same token
+       the box-name links use. We deliberately DON'T use --pd-tab-highlight /
+       --pd-tab-text-highlight: in Podman Desktop's dark theme those resolve to
+       grey and white, so the active tab read as plain white rather than purple. -->
   <div class="mb-4 flex gap-2 border-b border-[var(--pd-content-divider,#333)]">
     {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }, {
       id: 'doctor',
@@ -147,7 +149,7 @@ onMount(() => {
         aria-current={tab === tabDef.id ? 'page' : undefined}
         class="
           -mb-px cursor-pointer border-b-[3px] px-4 py-2 text-sm font-medium whitespace-nowrap {tab === tabDef.id
-          ? 'border-[var(--pd-tab-highlight,#8b5cf6)] text-[var(--pd-tab-highlight,#8b5cf6)]'
+          ? 'border-[var(--pd-link,#8b5cf6)] text-[var(--pd-link,#8b5cf6)]'
           : 'border-transparent text-[var(--pd-tab-text,#a3a3a3)] hover:border-[var(--pd-tab-hover,#555)]'}
         "
         onclick={() => selectTab(tabDef.id as Tab)}
