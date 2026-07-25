@@ -13,10 +13,11 @@ interface Props {
 }
 let { boxes, loaded }: Props = $props();
 
-// Widths are `minmax(floor, fr)` so the table fills the available width and the
-// columns share it proportionally instead of being pinned to fixed pixels (which
-// left dead space on wide windows and clipped the Actions column). The floors
-// keep each column readable; only a very narrow window scrolls horizontally.
+// Text columns use `minmax(0, fr)` so they SHRINK below their content (cells clip
+// with ellipsis) — the grid can never grow wider than its container, which is
+// what caused the horizontal scroll before. Only Actions keeps a floor so its
+// buttons never clip. Combined with `min-w-0` on the flex ancestors in App.svelte
+// (the actual overflow culprit), the table now always fits the available width.
 const columns = [
   new TableColumn<BoxSummary>('Status', {
     width: '70px',
@@ -24,31 +25,31 @@ const columns = [
     comparator: (a, b) => a.status.localeCompare(b.status),
   }),
   new TableColumn<BoxSummary>('Name', {
-    width: 'minmax(8rem,2fr)',
+    width: 'minmax(0,2fr)',
     renderer: BoxNameCell,
     comparator: (a, b) => a.name.localeCompare(b.name),
   }),
   new TableColumn<BoxSummary, string>('SSH host', {
-    width: 'minmax(8rem,2fr)',
+    width: 'minmax(0,2fr)',
     renderMapping: box => box.ssh_host,
     renderer: TableSimpleColumn,
   }),
   new TableColumn<BoxSummary, string>('Port', {
-    width: 'minmax(4rem,0.6fr)',
+    width: 'minmax(0,0.6fr)',
     renderMapping: box => (box.port === null ? '?' : String(box.port)),
     renderer: TableSimpleColumn,
   }),
   new TableColumn<BoxSummary>('Color', {
-    width: 'minmax(6rem,1fr)',
+    width: 'minmax(0,1fr)',
     renderer: BoxColorCell,
   }),
   new TableColumn<BoxSummary>('Engine', {
-    width: 'minmax(9rem,1.4fr)',
+    width: 'minmax(0,1.5fr)',
     renderer: BoxEngineCell,
     comparator: (a, b) => a.engine.localeCompare(b.engine),
   }),
   new TableColumn<BoxSummary>('Actions', {
-    width: 'minmax(9rem,0.8fr)',
+    width: 'minmax(8rem,0.9fr)',
     align: 'right',
     renderer: BoxActionsCell,
   }),
