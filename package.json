@@ -2,7 +2,7 @@
   "name": "isopod-dashboard",
   "displayName": "Isopod Dashboard",
   "description": "Manage isopod AI-coding sandboxes: box list, IDE launch, and egress observability",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "publisher": "isopod",
   "license": "Apache-2.0",
   "engines": {
@@ -43,11 +43,12 @@
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged"
+    "pre-commit": "pnpm exec lint-staged",
+    "pre-push": "pnpm typecheck"
   },
   "lint-staged": {
     "*.{ts,mts,js,mjs,cjs,json,jsonc}": ["biome lint --write --no-errors-on-unmatched", "dprint fmt"],
-    "*.{svelte,css,md,html,yaml,yml}": "dprint fmt"
+    "*.{svelte,css,md,html}": "dprint fmt"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.5",
