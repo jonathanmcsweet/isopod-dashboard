@@ -127,7 +127,11 @@ onMount(() => {
 });
 </script>
 
-<div class="flex h-full min-w-0 flex-col p-5">
+<!-- text-sm (14px) base: the ui-svelte Button and Table body set no font-size of
+     their own, so they inherit this. Left at the browser's 16px default they read
+     a step larger than Podman Desktop's own pages; 14px lines the whole dashboard
+     up with them. The h1/tabs set their own sizes and are unaffected. -->
+<div class="flex h-full min-w-0 flex-col p-5 text-sm">
   <div class="mb-4 flex items-center gap-4">
     <h1 class="grow text-xl font-bold">Isopod boxes</h1>
     <Button type="secondary" on:click={() => request({ kind: 'refresh' })}>Refresh</Button>

@@ -2,7 +2,7 @@
   "name": "isopod-dashboard",
   "displayName": "Isopod Dashboard",
   "description": "Manage isopod AI-coding sandboxes: box list, IDE launch, and egress observability",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "publisher": "isopod",
   "license": "Apache-2.0",
   "engines": {
