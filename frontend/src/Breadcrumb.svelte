@@ -17,7 +17,9 @@ let { parent, title, onnavigate }: Props = $props();
     type="button"
     class="cursor-pointer text-[var(--pd-content-breadcrumb,#a074c4)] hover:underline"
     onclick={onnavigate}
-  >{parent}</button>
+  >
+    {parent}
+  </button>
   <span class="text-[var(--pd-content-breadcrumb,#a074c4)] opacity-60">&gt;</span>
   <span class="text-[var(--pd-content-breadcrumb-2,#d4d4d4)]">{title}</span>
 </nav>
