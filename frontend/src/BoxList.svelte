@@ -29,6 +29,14 @@ const columns = [
     renderer: BoxNameCell,
     comparator: (a, b) => a.name.localeCompare(b.name),
   }),
+  // Engine sits right after Name: the engine + isolation tier is a primary fact
+  // about a box, so it reads before the connection detail. Wider than the raw
+  // engine name to fit the spelled-out tier + runtime (e.g. "podman · microVM · krun").
+  new TableColumn<BoxSummary>('Engine', {
+    width: 'minmax(0,1.8fr)',
+    renderer: BoxEngineCell,
+    comparator: (a, b) => a.engine.localeCompare(b.engine),
+  }),
   new TableColumn<BoxSummary, string>('SSH host', {
     width: 'minmax(0,2fr)',
     renderMapping: box => box.ssh_host,
@@ -42,11 +50,6 @@ const columns = [
   new TableColumn<BoxSummary>('Color', {
     width: 'minmax(0,1fr)',
     renderer: BoxColorCell,
-  }),
-  new TableColumn<BoxSummary>('Engine', {
-    width: 'minmax(0,1.5fr)',
-    renderer: BoxEngineCell,
-    comparator: (a, b) => a.engine.localeCompare(b.engine),
   }),
   new TableColumn<BoxSummary>('Actions', {
     width: 'minmax(8rem,0.9fr)',
@@ -71,10 +74,7 @@ const row = new TableRow<BoxSummary>({});
        indent past the header/tabs. Zero the margin (targeting the Table's own
        role="table" root) so it fills the column exactly and the fr tracks size
        to the real width. -->
-  <!-- text-sm so the body cells render at the same 14px as the Table's own
-       headers (they otherwise inherit the 16px base and read larger/looser than
-       Podman's native tables). -->
-  <div class="text-sm [&>[role=table]]:mx-0">
+  <div class="[&>[role=table]]:mx-0">
     <Table kind="box" data={boxes} {columns} {row} defaultSortColumn="Name" />
   </div>
 {/if}
