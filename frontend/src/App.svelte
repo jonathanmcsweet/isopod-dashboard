@@ -11,12 +11,11 @@ import type {
   SecretIndex,
 } from '../../src/protocol';
 import { onEvent, request } from './api';
-import BoxList from './BoxList.svelte';
-import CreateBox from './CreateBox.svelte';
+import BoxesTab from './BoxesTab.svelte';
 import DoctorPanel from './DoctorPanel.svelte';
 import EgressPanel from './EgressPanel.svelte';
 import SecretsPanel from './SecretsPanel.svelte';
-import { busyBoxes, createForm, detail, openCreateForm, resetCreateForm } from './stores.svelte';
+import { busyBoxes, createForm, detail, resetCreateForm } from './stores.svelte';
 
 type Tab = 'boxes' | 'egress' | 'secrets' | 'doctor';
 
@@ -134,12 +133,13 @@ onMount(() => {
     <Button type="secondary" on:click={() => request({ kind: 'refresh' })}>Refresh</Button>
   </div>
 
-  <!-- Click-driven tabs (the webview has no router). The active tab uses the
-       accent-purple link color, --pd-link (accent1[400]/[600]) — the same token
-       the box-name links use. We deliberately DON'T use --pd-tab-highlight /
-       --pd-tab-text-highlight: in Podman Desktop's dark theme those resolve to
-       grey and white, so the active tab read as plain white rather than purple. -->
-  <div class="mb-4 flex gap-2 border-b border-[var(--pd-content-divider,#333)]">
+  <!-- Click-driven tabs (the webview has no router), styled to match Podman's
+       own filter tabs: always the accent-purple link color (--pd-link, the same
+       token the box-name links use), small and light-weight, with the active tab
+       distinguished by a purple underline rather than a colour change. We DON'T
+       use --pd-tab-* here: in the dark theme those resolve to grey/white, so the
+       tabs read as plain text instead of the purple links Podman shows. -->
+  <div class="mb-4 flex gap-1 border-b border-[var(--pd-content-divider,#333)] text-[color:var(--pd-link,#8b5cf6)]">
     {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }, {
       id: 'doctor',
       label: 'Doctor',
@@ -148,9 +148,9 @@ onMount(() => {
         type="button"
         aria-current={tab === tabDef.id ? 'page' : undefined}
         class="
-          -mb-px cursor-pointer border-b-[3px] px-4 py-2 text-sm font-medium whitespace-nowrap {tab === tabDef.id
-          ? 'border-[var(--pd-link,#8b5cf6)] text-[var(--pd-link,#8b5cf6)]'
-          : 'border-transparent text-[var(--pd-tab-text,#a3a3a3)] hover:border-[var(--pd-tab-hover,#555)]'}
+          -mb-px cursor-pointer border-b-2 px-3 py-1.5 text-xs whitespace-nowrap hover:opacity-100 {tab === tabDef.id
+          ? 'border-[var(--pd-link,#8b5cf6)] font-medium opacity-100'
+          : 'border-transparent font-normal opacity-70'}
         "
         onclick={() => selectTab(tabDef.id as Tab)}
       >
@@ -168,16 +168,7 @@ onMount(() => {
 
   <div class="min-h-0 min-w-0 grow overflow-auto">
     {#if tab === 'boxes'}
-      {#if detail.name !== null}
-        <BoxDetail name={detail.name} info={detail.info} error={detail.error} />
-      {:else if createForm.open}
-        <CreateBox />
-      {:else}
-        <div class="mb-3 flex justify-end">
-          <Button type="primary" on:click={openCreateForm}>+ New box</Button>
-        </div>
-        <BoxList {boxes} {loaded} />
-      {/if}
+      <BoxesTab {boxes} {loaded} />
     {:else if tab === 'egress'}
       <EgressPanel
         status={egress}

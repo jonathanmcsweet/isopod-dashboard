@@ -71,7 +71,10 @@ const row = new TableRow<BoxSummary>({});
        indent past the header/tabs. Zero the margin (targeting the Table's own
        role="table" root) so it fills the column exactly and the fr tracks size
        to the real width. -->
-  <div class="[&>[role=table]]:mx-0">
+  <!-- text-sm so the body cells render at the same 14px as the Table's own
+       headers (they otherwise inherit the 16px base and read larger/looser than
+       Podman's native tables). -->
+  <div class="text-sm [&>[role=table]]:mx-0">
     <Table kind="box" data={boxes} {columns} {row} defaultSortColumn="Name" />
   </div>
 {/if}

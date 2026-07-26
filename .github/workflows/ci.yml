@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Typecheck, lint, format, unit tests, and a full build. One job: the pnpm
+  # install dominates the cost, so re-installing per check buys nothing.
+  #
+  # `pnpm typecheck` (tsc + svelte-check) is the load-bearing step. `vite build`
+  # does NOT fail on template type errors — an undefined component, a dropped
+  # import leaving something unbound — so a broken webview builds green and only
+  # svelte-check catches it. That is exactly how the box-detail panel regressed
+  # repeatedly. Keep this job required on the default branch.
+  # -------------------------------------------------------------------------
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: typecheck (tsc + svelte-check)
+        run: pnpm typecheck
+
+      - name: lint (biome)
+        run: pnpm lint
+
+      - name: format check (dprint)
+        run: pnpm format:check
+
+      - name: unit tests (vitest)
+        run: pnpm test
+
+      - name: build (backend + webview)
+        run: pnpm build
