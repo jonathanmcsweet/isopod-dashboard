@@ -43,11 +43,12 @@
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged"
+    "pre-commit": "pnpm exec lint-staged",
+    "pre-push": "pnpm typecheck"
   },
   "lint-staged": {
     "*.{ts,mts,js,mjs,cjs,json,jsonc}": ["biome lint --write --no-errors-on-unmatched", "dprint fmt"],
-    "*.{svelte,css,md,html,yaml,yml}": "dprint fmt"
+    "*.{svelte,css,md,html}": "dprint fmt"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.5",
