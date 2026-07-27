@@ -1,0 +1,8 @@
+# The image only needs package.json, icon.png, LICENSE, README.md, and dist/.
+# Everything else is build-time or source and just bloats the build context.
+*
+!package.json
+!icon.png
+!LICENSE
+!README.md
+!dist
