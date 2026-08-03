@@ -7,13 +7,15 @@ interface Props {
 let { object }: Props = $props();
 </script>
 
+<!-- Body cells carry --pd-table-body-text (what TableSimpleColumn uses), so this
+     column reads at the same weight as the plain-text ones. -->
 {#if object.color}
-  <div class="flex items-center gap-2">
+  <div class="flex items-center gap-2 text-[color:var(--pd-table-body-text)]">
     <!-- isopod preset color names are valid CSS color keywords (teal, …);
          unknown names simply render no dot -->
     <span class="inline-block h-3 w-3 rounded" style="background-color: {object.color}"></span>
-    <span class="text-sm">{object.color}</span>
+    <span class="truncate">{object.color}</span>
   </div>
 {:else}
-  <span class="text-sm opacity-50">—</span>
+  <span class="text-[color:var(--pd-table-body-text)] opacity-50">—</span>
 {/if}

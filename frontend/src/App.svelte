@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Button, ErrorMessage } from '@podman-desktop/ui-svelte';
+import { Button, ErrorMessage, NavPage } from '@podman-desktop/ui-svelte';
 import { onMount } from 'svelte';
 import type {
   BoxSummary,
@@ -15,9 +15,16 @@ import BoxesTab from './BoxesTab.svelte';
 import DoctorPanel from './DoctorPanel.svelte';
 import EgressPanel from './EgressPanel.svelte';
 import SecretsPanel from './SecretsPanel.svelte';
-import { busyBoxes, createForm, detail, resetCreateForm } from './stores.svelte';
+import { busyBoxes, createForm, detail, openCreateForm, resetCreateForm } from './stores.svelte';
 
 type Tab = 'boxes' | 'egress' | 'secrets' | 'doctor';
+
+const TABS: { id: Tab; label: string; }[] = [
+  { id: 'boxes', label: 'Boxes' },
+  { id: 'egress', label: 'Egress' },
+  { id: 'secrets', label: 'Secrets' },
+  { id: 'doctor', label: 'Doctor' },
+];
 
 let boxes = $state<BoxSummary[]>([]);
 let loaded = $state(false);
@@ -127,72 +134,82 @@ onMount(() => {
 });
 </script>
 
-<!-- text-sm (14px) base: the ui-svelte Button and Table body set no font-size of
-     their own, so they inherit this. Left at the browser's 16px default they read
-     a step larger than Podman Desktop's own pages; 14px lines the whole dashboard
-     up with them. The h1/tabs set their own sizes and are unaffected. -->
-<div class="flex h-full min-w-0 flex-col p-5 text-sm">
-  <div class="mb-4 flex items-center gap-4">
-    <h1 class="grow text-xl font-bold">Isopod boxes</h1>
-    <Button type="secondary" on:click={() => request({ kind: 'refresh' })}>Refresh</Button>
-  </div>
-
-  <!-- Click-driven tabs (the webview has no router), styled to match Podman's
-       own filter tabs: always the accent-purple link color (--pd-link, the same
-       token the box-name links use), small and light-weight, with the active tab
-       distinguished by a purple underline rather than a colour change. We DON'T
-       use --pd-tab-* here: in the dark theme those resolve to grey/white, so the
-       tabs read as plain text instead of the purple links Podman shows. -->
-  <div class="mb-4 flex gap-1 border-b border-[var(--pd-content-divider,#333)] text-[color:var(--pd-link,#8b5cf6)]">
-    {#each [{ id: 'boxes', label: 'Boxes' }, { id: 'egress', label: 'Egress' }, { id: 'secrets', label: 'Secrets' }, {
-      id: 'doctor',
-      label: 'Doctor',
-    }] as tabDef (tabDef.id)}
-      <button
-        type="button"
-        aria-current={tab === tabDef.id ? 'page' : undefined}
-        class="
-          -mb-px cursor-pointer border-b-2 px-3 py-1.5 text-xs whitespace-nowrap hover:opacity-100 {tab === tabDef.id
-          ? 'border-[var(--pd-link,#8b5cf6)] font-medium opacity-100'
-          : 'border-transparent font-normal opacity-70'}
-        "
-        onclick={() => selectTab(tabDef.id as Tab)}
-      >
-        {tabDef.label}
-      </button>
-    {/each}
-  </div>
-
-  {#if lastError}
-    <div class="mb-3">
-      <ErrorMessage error={lastError} />
-      <Button type="link" on:click={() => (lastError = undefined)}>Dismiss</Button>
-    </div>
-  {/if}
-
-  <div class="min-h-0 min-w-0 grow overflow-auto">
-    {#if tab === 'boxes'}
-      <BoxesTab {boxes} {loaded} />
-    {:else if tab === 'egress'}
-      <EgressPanel
-        status={egress}
-        error={egressError}
-        {allowlist}
-        {denied}
-        {deniedError}
-        {logLines}
-        {logRunning}
-      />
-    {:else if tab === 'secrets'}
-      <SecretsPanel {secrets} error={secretsError} loaded={secretsLoaded} />
-    {:else}
-      <DoctorPanel
-        report={doctorReport}
-        error={doctorError}
-        {gc}
-        {gcError}
-        loaded={doctorLoaded}
-      />
+<!-- NavPage is the shell every native list page uses (Containers, Images, Pods…):
+     it owns the header, the action slot, the tab strip and the content region,
+     with Podman's own paddings and colour tokens. Using it — instead of
+     hand-rolling a header — is what keeps this page lined up with the rest of
+     the app. Search is off: we don't filter the tables (yet), and a dead search
+     box would be worse than none. -->
+<NavPage title="Isopod boxes" searchEnabled={false}>
+  {#snippet additionalActions()}
+    <Button
+      type="secondary"
+      title="Re-read boxes from the isopod CLI"
+      on:click={() => request({ kind: 'refresh' })}
+    >
+      Refresh
+    </Button>
+    {#if tab === 'boxes' && detail.name === null && !createForm.open}
+      <!-- Podman puts a list's create action in the page header (Containers →
+           "Create"), not above the table. -->
+      <Button title="Create a new box" on:click={openCreateForm}>New box</Button>
     {/if}
-  </div>
-</div>
+  {/snippet}
+
+  {#snippet tabs()}
+    <!-- Click-driven (the webview has no router), but rendered with ui-svelte's
+         own `type="tab"` Button, so the underline, weight and --pd-button-tab-*
+         colours are literally the ones Podman's own filter tabs use. -->
+    {#each TABS as tabDef (tabDef.id)}
+      <Button type="tab" selected={tab === tabDef.id} on:click={() => selectTab(tabDef.id)}>
+        {tabDef.label}
+      </Button>
+    {/each}
+  {/snippet}
+
+  {#snippet content()}
+    <!-- min-h-0 + grow all the way down so the panels that fill their height (the
+         egress log tails inside its own scroller) still get a definite height
+         from NavPage's content region. -->
+    <div class="flex min-h-0 w-full min-w-0 grow flex-col">
+      {#if lastError}
+        <div class="mb-3 px-5">
+          <ErrorMessage error={lastError} />
+          <Button type="link" on:click={() => (lastError = undefined)}>Dismiss</Button>
+        </div>
+      {/if}
+
+      {#if tab === 'boxes'}
+        <BoxesTab {boxes} {loaded} />
+      {:else if tab === 'egress'}
+        <!-- The Table brings its own gutters; the card-based panels don't, so
+             they get NavPage's px-5 here. -->
+        <div class="flex min-h-0 min-w-0 grow flex-col px-5 pb-5">
+          <EgressPanel
+            status={egress}
+            error={egressError}
+            {allowlist}
+            {denied}
+            {deniedError}
+            {logLines}
+            {logRunning}
+          />
+        </div>
+      {:else if tab === 'secrets'}
+        <div class="flex min-h-0 min-w-0 grow flex-col px-5 pb-5">
+          <SecretsPanel {secrets} error={secretsError} loaded={secretsLoaded} />
+        </div>
+      {:else}
+        <div class="flex min-h-0 min-w-0 grow flex-col px-5 pb-5">
+          <DoctorPanel
+            report={doctorReport}
+            error={doctorError}
+            {gc}
+            {gcError}
+            loaded={doctorLoaded}
+          />
+        </div>
+      {/if}
+    </div>
+  {/snippet}
+</NavPage>

@@ -4,6 +4,27 @@
    hence the explicit source. */
 @source "../../node_modules/@podman-desktop/ui-svelte/dist";
 
+/* Podman Desktop replaces Tailwind's whole font-size scale in its own
+   tailwind.config.cjs (xs 10px … 6xl 36px) and renders the app body at
+   `text-base` = 12px. Its compiled ui-svelte components ship those class names
+   (the Table header is `text-sm`, NavPage's title `text-xl`, …), so on the stock
+   v4 scale every one of them comes out a step or two larger than the same
+   component on a native page — the single biggest reason this webview reads
+   "not quite Podman". Mirror the host scale so shared components and our own
+   markup land on the same sizes Podman uses. */
+@theme {
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 12px;
+  --text-lg: 14px;
+  --text-xl: 16px;
+  --text-2xl: 18px;
+  --text-3xl: 20px;
+  --text-4xl: 24px;
+  --text-5xl: 30px;
+  --text-6xl: 36px;
+}
+
 html,
 body,
 #app {
@@ -14,5 +35,6 @@ body,
 body {
   background-color: var(--pd-content-bg, #1b1d23);
   color: var(--pd-content-text, #f2f2f2);
-  font-family: system-ui, -apple-system, sans-serif;
+  /* 12px, matching Podman Desktop's `text-base` body. */
+  font-size: var(--text-base);
 }

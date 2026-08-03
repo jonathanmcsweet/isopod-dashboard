@@ -12,7 +12,7 @@ let { object }: Props = $props();
 const spec = $derived(isolationSpec(object.isolation, object.runtime));
 </script>
 
-<span class="flex min-w-0 items-center gap-1.5">
+<span class="flex min-w-0 items-center gap-1.5 text-[color:var(--pd-table-body-text)]">
   <span class="truncate">{object.engine}</span>
   {#if spec}
     <span class="opacity-30" aria-hidden="true">·</span>

@@ -17,10 +17,11 @@ let { boxes, loaded }: Props = $props();
 // with ellipsis) — the grid can never grow wider than its container. Only Actions
 // keeps a floor so its buttons never clip. The fr tracks then distribute the full
 // container width across the columns (no dead space). See the wrapper below for
-// the other half of the overflow fix: zeroing the Table's own `mx-5`.
+// the other half of the overflow fix: the flex row the Table sits in.
 const columns = [
   new TableColumn<BoxSummary>('Status', {
     width: '70px',
+    align: 'center',
     renderer: BoxStatusCell,
     comparator: (a, b) => a.status.localeCompare(b.status),
   }),
@@ -51,8 +52,10 @@ const columns = [
     width: 'minmax(0,1fr)',
     renderer: BoxColorCell,
   }),
+  // Fixed and right-aligned, like Podman's own Actions column — the icon buttons
+  // have a known width, so the text columns get the rest.
   new TableColumn<BoxSummary>('Actions', {
-    width: 'minmax(8rem,0.9fr)',
+    width: '100px',
     align: 'right',
     renderer: BoxActionsCell,
   }),
@@ -68,13 +71,12 @@ const row = new TableRow<BoxSummary>({});
     message="Create one with: isopod create <name> --repo <path>"
   />
 {:else}
-  <!-- ui-svelte's Table root is `w-full mx-5`: on a 100%-wide box those 20px
-       side margins push it 40px past its container — a permanent horizontal
-       scroll with the Actions column clipped off the right edge, and a 20px
-       indent past the header/tabs. Zero the margin (targeting the Table's own
-       role="table" root) so it fills the column exactly and the fr tracks size
-       to the real width. -->
-  <div class="[&>[role=table]]:mx-0">
+  <!-- ui-svelte's Table root is `w-full mx-5`, which overflows a block parent by
+       those 40px of margin (horizontal scroll, Actions clipped off the right).
+       Podman's own lists avoid that by making the parent a flex row: as a flex
+       item the Table shrinks to fit its margins instead of forcing them out. Same
+       wrapper as ContainerList — the gutters then match the header and tabs. -->
+  <div class="flex min-w-full grow">
     <Table kind="box" data={boxes} {columns} {row} defaultSortColumn="Name" />
   </div>
 {/if}
