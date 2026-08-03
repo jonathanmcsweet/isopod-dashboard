@@ -23,6 +23,23 @@ no isopod logic is reimplemented. Data flows through the JSON contract in
 - Podman Desktop >= 1.10
 - `isopod` >= 2.9 on PATH (with `--json` output)
 
+## Install
+
+In Podman Desktop, go to **Extensions > Install custom extension from OCI image**
+and enter:
+
+```
+ghcr.io/jonathanmcsweet/isopod-dashboard:latest
+```
+
+Pin a specific version by replacing `latest` with a released tag (e.g.
+`:0.8.3`). The extension then appears on the **Extensions** page and adds the
+**Isopod** entry to the left sidebar. See [Requirements](#requirements) above —
+the `isopod` CLI must be on your PATH for box and egress reads to work.
+
+Each release is published from a `v<version>` git tag by
+[the release workflow](.github/workflows/release.yml).
+
 ## Development
 
 ### Prerequisites
