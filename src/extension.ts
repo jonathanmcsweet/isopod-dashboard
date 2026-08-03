@@ -319,6 +319,13 @@ async function openDashboard(extensionPath: string): Promise<void> {
     }
   }
   panel = podmanDesktopApi.window.createWebviewPanel(VIEW_TYPE, 'Isopod');
+  // The left-nav entry for a webview renders its iconPath as a plain <img> at
+  // 22px (no CSS colouring), defaulting to the extension's icon.png — the full
+  // colour marketplace tile, which stands out against Podman's monochrome nav
+  // glyphs. Point it at a flat grey silhouette instead: one neutral tone, since
+  // an <img> can't follow --pd-global-nav-icon across themes or the selected
+  // state. icon.png stays the (colour) extension icon.
+  panel.iconPath = podmanDesktopApi.Uri.file(join(extensionPath, 'icon-nav.png'));
   panel.onDidDispose(() => {
     stopLogTail();
     panel = undefined;

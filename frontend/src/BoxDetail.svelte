@@ -2,6 +2,7 @@
 import { Button, Spinner } from '@podman-desktop/ui-svelte';
 import type { BoxInfo, ContainerView } from '../../src/protocol';
 import { request } from './api';
+import BoxStatusIcon from './BoxStatusIcon.svelte';
 import Breadcrumb from './Breadcrumb.svelte';
 import IsolationBadge from './IsolationBadge.svelte';
 import { closeDetail } from './stores.svelte';
@@ -12,14 +13,6 @@ interface Props {
   error: string | undefined;
 }
 let { name, info, error }: Props = $props();
-
-const statusColor = $derived(
-  info?.status === 'running'
-    ? 'var(--pd-status-running, #16a34a)'
-    : info?.status === 'missing'
-    ? 'var(--pd-status-dead, #dc2626)'
-    : 'var(--pd-status-stopped, #6b7280)',
-);
 
 function copy(text: string): void {
   request({ kind: 'copyText', text });
@@ -42,11 +35,11 @@ const deepLinks: { view: ContainerView; label: string; }[] = [
     <Breadcrumb parent="Boxes" title={name} onnavigate={closeDetail} />
     <div class="flex items-center gap-3">
       {#if info}
-        <span class="inline-block h-3 w-3 rounded-full" style="background-color: {statusColor}"></span>
+        <BoxStatusIcon status={info.status} isolation={info.isolation} />
       {/if}
       <h2 class="grow truncate text-lg font-semibold">{name}</h2>
       {#if info?.color}
-        <span class="flex items-center gap-1.5 text-sm opacity-70">
+        <span class="flex items-center gap-1.5 opacity-70">
           <span class="inline-block h-3 w-3 rounded" style="background-color: {info.color}"></span>
           {info.color}
         </span>
