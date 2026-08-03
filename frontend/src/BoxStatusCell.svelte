@@ -8,9 +8,8 @@ interface Props {
 }
 let { object }: Props = $props();
 
-// Colour/fill encodes the status, the glyph inside encodes the isolation class —
-// see BoxStatusIcon. The title spells both out (Podman's status icons are
-// title-tooltipped the same way).
+// Color/fill encodes the status, the glyph inside encodes the isolation class —
+// see BoxStatusIcon.
 const spec = $derived(isolationSpec(object.isolation, object.runtime));
 const title = $derived(spec ? `${object.status} · ${spec.label}` : object.status);
 </script>

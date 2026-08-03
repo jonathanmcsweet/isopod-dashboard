@@ -136,10 +136,7 @@ onMount(() => {
 
 <!-- NavPage is the shell every native list page uses (Containers, Images, Pods…):
      it owns the header, the action slot, the tab strip and the content region,
-     with Podman's own paddings and colour tokens. Using it — instead of
-     hand-rolling a header — is what keeps this page lined up with the rest of
-     the app. Search is off: we don't filter the tables (yet), and a dead search
-     box would be worse than none. -->
+     with Podman's own paddings and colour tokens. Search is off for now -->
 <NavPage title="Isopod boxes" searchEnabled={false}>
   {#snippet additionalActions()}
     <Button
